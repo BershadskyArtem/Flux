@@ -1,0 +1,13 @@
+{
+  "name": "flux",
+  "version-string": "00001a",
+  "dependencies": [
+    "libjpeg-turbo",
+    {
+      "name": "libraw",
+      "default-features": false,
+      "features": [ "openmp" ]
+    },
+    "xsimd"
+  ]
+}
