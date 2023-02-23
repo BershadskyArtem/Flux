@@ -1,27 +1,35 @@
 ﻿#include "Flux.h"
-#include "../engine/Color/Test.h"
-#include "../engine/infrastructure/FLXDefines.h"
+#include "../engine/Color/Converter.h"
 
 using namespace std;
 
 int main()
 {
-	int inc = xsimd::batch<pixel_t, SIMD_ARCH>::size;
-	Test::LetThisShit();
-	int c = 0;
-	LibRaw* d = new LibRaw();
-	d->open_file("");
-	auto s = tjAlloc(100);
-	cout << ((char*)s)[0] << endl;
-	cout << c << endl;
-	cout << inc << endl;
+	Converter::Init();
+
+	float r = 0.f;
+	float g = 0.5f;
+	float b = 0.f;
 
 
-
-	cout << __AVX2__ << std::endl;
+	float l = 0.f;
+	float a = 0.f;
+	//float b = 0.f;
 	
+	float c = 0.f;
+	float h = 0.f;
 
-	d->recycle();
-	delete d;
+	Converter::RGB2OKLab(r, g, b, l, a, b);
+	
+	Converter::OkLab2OkLCh(l, a, b, l, c, h);
+
+	Converter::OkLCh2OkLab(l, c, h, l, a, b);
+
+	Converter::OKLab2RGB(l, a, b, r, g, b);
+
+	std::cout << r << std::endl;
+	std::cout << g << std::endl;
+	std::cout << b << std::endl;
+
 	return 0;
 }

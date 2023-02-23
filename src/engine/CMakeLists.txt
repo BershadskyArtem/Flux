@@ -14,7 +14,11 @@ add_library(FLXCore SHARED
     Color/Test.h Color/Test.cpp 
     "Exports.h" 
     "Exports.cpp" 
-    "infrastructure/FLXDefines.h" "Color/Converter.h" "Color/Converter.cpp" "infrastructure/LUT.h" "infrastructure/LUT.cpp")
+    "infrastructure/FLXDefines.h" 
+    "Color/Converter.h" 
+    "Color/Converter.cpp" 
+    "infrastructure/LUT.h" 
+    "infrastructure/LUT.cpp")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET FLXCore PROPERTY CXX_STANDARD 20)
