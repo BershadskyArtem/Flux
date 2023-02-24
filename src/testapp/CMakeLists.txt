@@ -4,7 +4,7 @@ find_package(libraw CONFIG REQUIRED)
 find_package(xsimd CONFIG REQUIRED)
 
 
-add_executable (FluxTest "Flux.cpp" "Flux.h" "../engine/Color/Converter.cpp" "../engine/Color/Converter.h" "../engine/infrastructure/FLXDefines" "../engine/infrastructure/LUT.h" "../engine/infrastructure/LUT.cpp")
+add_executable (FluxTest "Flux.cpp" "Flux.h" "../engine/Color/Converter.cpp" "../engine/Color/Converter.h" "../engine/infrastructure/FLXDefines" "../engine/infrastructure/LUT.h" "../engine/infrastructure/LUT.cpp" "../engine/infrastructure/LUTf3d.cpp" "../engine/infrastructure/LUTf3d.h")
 
 if ( MSVC )
     string(REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")

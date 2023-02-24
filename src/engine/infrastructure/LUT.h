@@ -1,3 +1,5 @@
+#pragma once
+
 #include "FLXDefines.h"
 #include <xsimd/xsimd.hpp>
 

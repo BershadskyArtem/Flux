@@ -9,6 +9,7 @@
 #endif // AVX2
 
 #define vfloat xsimd::batch<pixel_t, SIMD_ARCH>
+#define vint xsimd::batch<int, SIMD_ARCH>
 
 
 
