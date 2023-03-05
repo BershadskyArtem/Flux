@@ -53,14 +53,18 @@ pixel_t LUTf3d::Get(pixel_t valueX, pixel_t valueY, pixel_t valueZ)
 	int idxZ = (int)valueZ;
 	float diffZ = valueZ - (float)idxZ;
 	
+	int idxXOne = std::min(this->width - 1, idxX + 1);
+	int idxYOne = std::min(this->height - 1, idxY + 1);
+	int idxZOne = std::min(this->depth - 1, idxZ + 1);
+
 	pixel_t& c000 = data[GetIndex(idxX, idxY, idxZ)];
-	pixel_t& c100 = data[GetIndex(idxX + 1, idxY, idxZ)];
-	pixel_t& c010 = data[GetIndex(idxX, idxY + 1, idxZ)];
-	pixel_t& c110 = data[GetIndex(idxX + 1, idxY + 1, idxZ)];
-	pixel_t& c001 = data[GetIndex(idxX, idxY, idxZ + 1)];
-	pixel_t& c101 = data[GetIndex(idxX + 1, idxY, idxZ + 1)];
-	pixel_t& c011 = data[GetIndex(idxX, idxY + 1, idxZ + 1)];
-	pixel_t& c111 = data[GetIndex(idxX + 1, idxY + 1, idxZ + 1)];
+	pixel_t& c100 = data[GetIndex(idxXOne, idxY, idxZ)];
+	pixel_t& c010 = data[GetIndex(idxX, idxYOne, idxZ)];
+	pixel_t& c110 = data[GetIndex(idxXOne, idxYOne, idxZ)];
+	pixel_t& c001 = data[GetIndex(idxX, idxY, idxZOne)];
+	pixel_t& c101 = data[GetIndex(idxXOne, idxY, idxZOne)];
+	pixel_t& c011 = data[GetIndex(idxX, idxYOne, idxZOne)];
+	pixel_t& c111 = data[GetIndex(idxXOne, idxYOne, idxZOne)];
 
 	return
 		(1 - diffX) * (1 - diffY) * (1 - diffZ) * c000 +

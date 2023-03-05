@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <omp.h>
 #include <iostream>
 #include "turbojpeg.h"
 #include "libraw/libraw.h"

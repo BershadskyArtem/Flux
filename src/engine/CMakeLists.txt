@@ -7,6 +7,10 @@
 find_package(JPEG REQUIRED)    
 find_package(libraw CONFIG REQUIRED)
 find_package(xsimd CONFIG REQUIRED)
+find_package(OpenMP REQUIRED)
+
+
+
 
 set (CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON )
 
@@ -14,11 +18,25 @@ add_library(FLXCore SHARED
     Color/Test.h Color/Test.cpp 
     "Exports.h" 
     "Exports.cpp" 
-    "infrastructure/FLXDefines.h" 
     "Color/Converter.h" 
     "Color/Converter.cpp" 
+    "infrastructure/FLXDefines.h" 
     "infrastructure/LUT.h" 
-    "infrastructure/LUT.cpp" "infrastructure/LUTf3d.h" "infrastructure/LUTf3d.cpp")
+    "infrastructure/LUT.cpp" 
+    "infrastructure/LUTf3d.h" 
+    "infrastructure/LUTf3d.cpp" 
+    "infrastructure/InteropTypes.h" 
+    "infrastructure/MemoryUtils.cpp" 
+    "infrastructure/MemoryUtils.h" 
+    "io/ImageDecoder.h" 
+    "io/ImageDecoder.cpp" 
+    "io/JpegImageDecoder.h" 
+    "io/JpegImageDecoder.cpp" 
+    "io/ImageInput.h" 
+    "io/ImageInput.cpp" 
+    "infrastructure/PixelsHelper.h" 
+    "infrastructure/PixelsHelper.cpp"
+ "io/Encoders/ImageEncoder.h" "io/Encoders/ImageEncoder.cpp" "io/Encoders/JpegImageEncoder.h" "io/Encoders/JpegImageEncoder.cpp")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET FLXCore PROPERTY CXX_STANDARD 20)
@@ -63,7 +81,7 @@ if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET FLXCore PROPERTY CXX_STANDARD 20)
 endif()
 
-
+target_link_libraries(FLXCore PRIVATE OpenMP::OpenMP_CXX)
 target_link_libraries(FLXCore PRIVATE optimized;${CMAKE_SOURCE_DIR}/out/build/x64-Debug/vcpkg_installed/x64-windows-static/lib/turbojpeg.lib;debug;${CMAKE_SOURCE_DIR}/out/build/x64-Debug/vcpkg_installed/x64-windows-static/debug/lib/turbojpeg.lib)
 target_include_directories(FLXCore PRIVATE ${JPEG_INCLUDE_DIR})
 target_link_libraries(FLXCore PRIVATE libraw::raw_r)

@@ -2,9 +2,35 @@
 find_package(JPEG REQUIRED)    
 find_package(libraw CONFIG REQUIRED)
 find_package(xsimd CONFIG REQUIRED)
+find_package(OpenMP REQUIRED)
 
+add_executable (FluxTest 
+    "Flux.cpp" 
+    "Flux.h" 
+    "../engine/Color/Converter.cpp" 
+    "../engine/Color/Converter.h"  
+    "../engine/infrastructure/FLXDefines.h" 
+    "../engine/infrastructure/LUT.h" 
+    "../engine/infrastructure/LUT.cpp" 
+    "../engine/infrastructure/LUTf3d.h" 
+    "../engine/infrastructure/LUTf3d.cpp" 
+    "../engine/infrastructure/InteropTypes.h" 
+    "../engine/infrastructure/MemoryUtils.cpp" 
+    "../engine/infrastructure/MemoryUtils.h" 
+    "../engine/io/ImageDecoder.h" 
+    "../engine/io/ImageDecoder.cpp" 
+    "../engine/io/JpegImageDecoder.h" 
+    "../engine/io/JpegImageDecoder.cpp" 
+    "../engine/io/ImageInput.h" 
+    "../engine/io/ImageInput.cpp"
+    "../engine/infrastructure/PixelsHelper.h" 
+    "../engine/infrastructure/PixelsHelper.cpp"
+    "../engine/io/Encoders/ImageEncoder.cpp" 
+    "../engine/io/Encoders/ImageEncoder.h" 
+    "../engine/io/Encoders/JpegImageEncoder.cpp" 
+    "../engine/io/Encoders/JpegImageEncoder.h" 
 
-add_executable (FluxTest "Flux.cpp" "Flux.h" "../engine/Color/Converter.cpp" "../engine/Color/Converter.h" "../engine/infrastructure/FLXDefines" "../engine/infrastructure/LUT.h" "../engine/infrastructure/LUT.cpp" "../engine/infrastructure/LUTf3d.cpp" "../engine/infrastructure/LUTf3d.h")
+)
 
 if ( MSVC )
     string(REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
@@ -43,9 +69,14 @@ if (CMAKE_VERSION VERSION_GREATER 3.12)
 endif()
 #set_property(TARGET FluxTest PROPERTY CXX_STANDARD 14)
 
+
+
+
+
+target_link_libraries(FluxTest PRIVATE OpenMP::OpenMP_CXX)
 target_link_libraries(FluxTest PRIVATE optimized;${CMAKE_SOURCE_DIR}/out/build/x64-Debug/vcpkg_installed/x64-windows-static/lib/turbojpeg.lib;debug;${CMAKE_SOURCE_DIR}/out/build/x64-Debug/vcpkg_installed/x64-windows-static/debug/lib/turbojpeg.lib)
 target_include_directories(FluxTest PRIVATE ${JPEG_INCLUDE_DIR})
-target_link_libraries(FluxTest PRIVATE libraw::raw_r)
+#target_link_libraries(FluxTest PRIVATE libraw::raw_r)
 target_link_libraries(FluxTest PRIVATE xsimd)
 
 

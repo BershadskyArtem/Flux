@@ -56,13 +56,9 @@ public:
 		vint idxZ = xsimd::batch_cast<int>(valueZ);
 		vfloat diffZ = valueZ - xsimd::batch_cast<float>(idxZ);
 
-		
-
 		vint idxXOne = xsimd::min(this->widthVi - oneV, idxX + oneV);
 		vint idxYOne = xsimd::min(this->heightVi - oneV, idxY + oneV);
 		vint idxZOne = xsimd::min(this->depthVi - oneV, idxZ + oneV);
-
-		
 
 		vfloat c000 = vfloat::gather(data, GetIndex(idxX, idxY, idxZ));
 		vfloat c100 = vfloat::gather(data, GetIndex(idxXOne, idxY, idxZ));
