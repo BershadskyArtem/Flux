@@ -5,6 +5,7 @@
 #include "../engine/io/ImageInput.h"
 #include "../engine/io/Encoders/JpegImageEncoder.h"
 #include "../engine/infrastructure/PixelsHelper.h"
+#include "../engine/infrastructure/BenchmarkHelper.h"
 
 using namespace std;
 
@@ -12,35 +13,20 @@ using namespace std;
 int main()
 {
 	Converter::Init();
+	int lutSize = 32;
 
-	float r = 0.f;
-	float g = 0.5f;
-	float b = 0.f;
-
-
-	float l = 0.f;
-	float a = 0.f;
-	//float b = 0.f;
-
-	float c = 0.f;
-	float h = 0.f;
-
-	Converter::RGB2OKLab(r, g, b, l, a, b);
-
-	Converter::OkLab2OkLCh(l, a, b, l, c, h);
-
-	Converter::OkLCh2OkLab(l, c, h, l, a, b);
-
-	Converter::OKLab2RGB(l, a, b, r, g, b);
-
-
-	int lutSize = 64;
-	LUTf3d lut = LUTf3d();
-	lut.Init(lutSize, lutSize, lutSize, 0.f);
+	LUTf3d lutR = LUTf3d();
+	LUTf3d lutG = LUTf3d();
+	LUTf3d lutB = LUTf3d();
+	
+	
+	lutR.Init(lutSize, lutSize, lutSize, 0.f);
+	lutG.Init(lutSize, lutSize, lutSize, 0.f);
+	lutB.Init(lutSize, lutSize, lutSize, 0.f);
 
 	float factor = 255.f / lutSize;
 
-
+	auto timeToFillLut = BenchmarkHelper::StartWatch();
 
 #pragma omp parallel for
 	for (int i = 0; i < lutSize; i++)
@@ -49,27 +35,22 @@ int main()
 		{
 			for (int k = 0; k < lutSize; k++)
 			{
-				float r = i * factor;
-				float g = j * factor;
-				float b = k * factor;
-				lut.SetValue((0.2126f * r + 0.7152f * g + 0.0722f * b)/255.f, i, j, k);
+				float r = i * factor / 255.f;
+				float g = j * factor / 255.f;
+				float b = k * factor / 255.f;
+
+				float l = (0.2126f * r + 0.7152f * g + 0.0722f * b);
+				lutR.SetValue(l, i, j, k);
+				lutG.SetValue(l, i, j, k);
+				lutB.SetValue(l, i, j, k);
 			}
 		}
 	}
 
+	BenchmarkHelper::ShowDurationFinal(timeToFillLut, "Time to fill LUT was:");
 
-
-	r = 0.5f;
-	g = 0.5f;
-	b = 0.5f;
-
-
-	vfloat rV = 0.5f;
-	vfloat gV = 0.5f;
-	vfloat bV = 0.5f;
-	vfloat divisor = 255.f;
-
-	std::string filePath = "C:\\Users\\Artyom\\Downloads\\DSC00213.JPG";
+	//std::string filePath = "C:\\Users\\Artyom\\Downloads\\DSC00213.JPG";
+	std::string filePath = "C:\\Users\\Artyom\\Downloads\\sample1.jpeg";
 
 	ImageInput decoder = ImageInput(filePath);
 	decoder.Init();
@@ -81,42 +62,40 @@ int main()
 	float* pixels = (float*)(image->Pixels);
 	float* wbPixels = new float[size] {};
 	int inc = vfloat::size;
+	float* rInitial = new float[size] {};
+	float* gInitial = new float[size] {};
+	float* bInitial = new float[size] {};
 
-	auto now = chrono::high_resolution_clock::now();
+	auto timeToDeinterleave = BenchmarkHelper::StartWatch();
 
-#pragma omp parallel for
-	for (int i = 0; i < size; i += 1)
-	{
-		int rIndex = i * 3;
-		int gIndex = i * 3 + 1;
-		int bIndex = i * 3 + 2;
+	PixelsHelper::Deinterleave(pixels, rInitial, gInitial, bInitial, width, height);
 
-		float rP = pixels[rIndex];
-		float gP = pixels[gIndex];
-		float bP = pixels[bIndex];
+	BenchmarkHelper::ShowDurationFinal(timeToDeinterleave, "Time to deinterleave was:");
 
-		wbPixels[i] = lut.Get01(rP, gP, bP);
-	}
+	auto timeToApplyLUT = BenchmarkHelper::StartWatch();
 
-	auto newNow = chrono::high_resolution_clock::now();
-	std::cout << "LUT applied" << std::endl;
-	std::cout << chrono::duration_cast<chrono::milliseconds>(newNow - now).count() << std::endl;
+	LUTf3d::ApplyLUTs(rInitial, gInitial,bInitial, rInitial, gInitial, bInitial, lutR, lutG, lutB, width, height);
+
+	BenchmarkHelper::ShowDurationFinal(timeToApplyLUT, "Time to apply LUT was:");
+
+	auto timeToInterleave = BenchmarkHelper::StartWatch();
+
+	PixelsHelper::Interleave3(rInitial, gInitial, bInitial, pixels, width, height);
+
+	BenchmarkHelper::ShowDurationFinal(timeToInterleave, "Time to interleave was");
 
 	std::string filePathOut = "C:\\Users\\Artyom\\Downloads\\FirstTest01.JPG";
 
-	JpegImageEncoder encoder = JpegImageEncoder(wbPixels, width, height, 1);
+	JpegImageEncoder encoder = JpegImageEncoder(pixels, width, height, 3);
 	encoder.Init();
 	encoder.FastSave(filePathOut);
 
-	std::cout << (0.2126f * r + 0.7152f * g + 0.0722f * b) << std::endl;
-	std::cout << lut.Get01(r, g, b) / 255.f << std::endl;
-	std::cout << lut.Get01(rV, gV, bV) / divisor << std::endl;
-
-	std::cout << "et" << std::endl;
-
-	lut.Dispose();
-
 	ImageInput::FreeFluxImage(image);
+	lutR.Dispose();
+
+	delete[] rInitial;
+	delete[] gInitial;
+	delete[] bInitial;
 
 	return 0;
 }

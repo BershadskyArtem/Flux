@@ -80,5 +80,9 @@ public:
 			diffX * diffY * diffZ * c111;
 	}
 
+	static void ApplyLUTs(pixel_t* rIn, pixel_t* gIn, pixel_t* bIn, pixel_t* rOut, pixel_t* gOut, pixel_t* bOut, LUTf3d& lutR, LUTf3d& lutG, LUTf3d& lutB, int width, int height);
+	
+
+
 
 };

@@ -6,6 +6,20 @@
 
 class PixelsHelper {
 public:
+
+	template<typename T>
+	static inline void Interleave3(T* r, T* g, T* b, T* rgbOut, int width, int height) {
+		int size = width * height;
+
+#pragma omp parallel for
+		for (int i = 0; i < size; i++)
+		{
+			rgbOut[i * 3] = r[i];
+			rgbOut[i * 3 + 1] = g[i];
+			rgbOut[i * 3 + 2] = b[i];
+		}
+	}
+
 	template<typename T>
 	static inline void Deinterleave(T* rgb, T* rOut, T* gOut, T* bOut, int width, int height)
 	{
@@ -22,8 +36,6 @@ public:
 				bOut[(i - 2) / 3] = rgb[i];
 		}
 	}
-
-	
 };
 
 

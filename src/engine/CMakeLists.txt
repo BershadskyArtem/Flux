@@ -36,7 +36,7 @@ add_library(FLXCore SHARED
     "io/ImageInput.cpp" 
     "infrastructure/PixelsHelper.h" 
     "infrastructure/PixelsHelper.cpp"
- "io/Encoders/ImageEncoder.h" "io/Encoders/ImageEncoder.cpp" "io/Encoders/JpegImageEncoder.h" "io/Encoders/JpegImageEncoder.cpp")
+ "io/Encoders/ImageEncoder.h" "io/Encoders/ImageEncoder.cpp" "io/Encoders/JpegImageEncoder.h" "io/Encoders/JpegImageEncoder.cpp" "infrastructure/BenchmarkHelper.h" "infrastructure/BenchmarkHelper.cpp")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET FLXCore PROPERTY CXX_STANDARD 20)

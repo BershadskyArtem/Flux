@@ -90,3 +90,36 @@ pixel_t LUTf3d::Get01(pixel_t valueX, pixel_t valueY, pixel_t valueZ)
 
 	return Get(valueX, valueY, valueZ);
 }
+
+void LUTf3d::ApplyLUTs(pixel_t* rIn, pixel_t* gIn, pixel_t* bIn, pixel_t* rOut, pixel_t* gOut, pixel_t* bOut, LUTf3d& lutR, LUTf3d& lutG, LUTf3d& lutB, int width, int height)
+{
+	int size = width * height;
+	int inc = vfloat::size;
+
+#pragma omp parallel for
+	for (int i = 0; i < size - vfloat::size; i += inc)
+	{
+		vfloat rP = vfloat::load_aligned(&rIn[i]);
+		vfloat gP = vfloat::load_aligned(&gIn[i]);
+		vfloat bP = vfloat::load_aligned(&bIn[i]);
+		vfloat nr = lutR.Get01(rP, gP, bP);
+		vfloat ng = lutG.Get01(rP, gP, bP);
+		vfloat nb = lutB.Get01(rP, gP, bP);
+		nr.store_aligned(&rOut[i]);
+		ng.store_aligned(&gOut[i]);
+		nb.store_aligned(&bOut[i]);
+	}
+
+	for (int i = size - inc; i < size; i++)
+	{
+		float rP = rIn[i];
+		float gP = gIn[i];
+		float bP = bIn[i];
+		float nr = lutR.Get01(rP, gP, bP);
+		float ng = lutG.Get01(rP, gP, bP);
+		float nb = lutB.Get01(rP, gP, bP);
+		rOut[i] = nr;
+		gOut[i] = ng;
+		bOut[i] = nb;
+	}
+}

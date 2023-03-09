@@ -17,6 +17,7 @@ add_executable (FluxTest
     "../engine/infrastructure/InteropTypes.h" 
     "../engine/infrastructure/MemoryUtils.cpp" 
     "../engine/infrastructure/MemoryUtils.h" 
+    "../engine/infrastructure/BenchmarkHelper.h" 
     "../engine/io/ImageDecoder.h" 
     "../engine/io/ImageDecoder.cpp" 
     "../engine/io/JpegImageDecoder.h" 
