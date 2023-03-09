@@ -19,7 +19,7 @@ bool JpegImageEncoder::Init()
 
 bool JpegImageEncoder::FastSave(std::string filePath)
 {
-	int jpegQuality = 75;
+	int jpegQuality = 80;
 	
 	int pixel_type = 0;
 	int sampling = 0;
@@ -38,8 +38,6 @@ bool JpegImageEncoder::FastSave(std::string filePath)
 		sampling = TJSAMP_GRAY;
 		pixel_type = TJPF_GRAY;
 	}
-
-
 
 	byte_t* pixels = new byte_t[m_Width * m_Height * m_ColorComponents];
 

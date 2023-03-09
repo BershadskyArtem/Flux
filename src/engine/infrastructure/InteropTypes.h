@@ -11,6 +11,21 @@ struct GeneralMetadata {
     int Height;
 };
 
+
+struct GeneralMetadataInternal{
+    int Width;
+    int Height;
+    /// <summary>
+    /// This can be anything you want.
+    /// </summary>
+    int MiscI32v1;
+    /// <summary>
+   /// This can be anything you want.
+   /// </summary>
+    int MiscI32v2;
+};
+
+
 struct ExifMetadata {
     //Exit metadata
     char* ProcessingSoftware;

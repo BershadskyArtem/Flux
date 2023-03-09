@@ -50,6 +50,7 @@ int main()
 	BenchmarkHelper::ShowDurationFinal(timeToFillLut, "Time to fill LUT was:");
 
 	//std::string filePath = "C:\\Users\\Artyom\\Downloads\\DSC00213.JPG";
+
 	std::string filePath = "C:\\Users\\Artyom\\Downloads\\sample1.jpeg";
 
 	ImageInput decoder = ImageInput(filePath);

@@ -23,8 +23,8 @@ public:
     virtual bool GetPreviewImage(uint8_t* buff, GeneralMetadata& data) = 0;
     virtual bool GetFullImage(float* buff) = 0;
 
-    virtual int Width() = 0;
-    virtual int Height() = 0;
+    virtual int Width();
+    virtual int Height();
 
     virtual int ScaledWidth() = 0;
     virtual int ScaledHeight() = 0;

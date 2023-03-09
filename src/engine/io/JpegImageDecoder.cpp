@@ -159,13 +159,6 @@ bool JpegImageDecoder::GetFullImage(float* buf) {
     return !m_HasErrors;
 }
 
-int JpegImageDecoder::Width() {
-    return m_Width;
-}
-
-int JpegImageDecoder::Height() {
-    return m_Height;
-}
 
 int JpegImageDecoder::ScaledWidth() {
     return m_ScaledWidth;
