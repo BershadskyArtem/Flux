@@ -26,7 +26,7 @@ bool RawImageDecoder::GetPreviewFromJpeg(unsigned char* inMemoryJpeg, long inMem
 bool RawImageDecoder::GetPreviewFromBitmap(byte_t* bitmap, int width, int height, int channelsCount, uint8_t* &buf, GeneralMetadata& data)
 {
 	buf = new uint8_t[width * height * channelsCount];
-	BitmapHelper::BitmapToRgb(bitmap, buf, width, height);
+	BitmapHelper::BitmapToRgb(bitmap, buf, width, height,3);
 	data.Width = width;
 	data.Height = height;
 	return true;
@@ -176,22 +176,24 @@ bool RawImageDecoder::Init()
 		});
 
 
-	int mediumPoint = (int)(thumbs.size() / 2.f);
-
-	if (thumbs.size() <= 2) {
-		mediumPoint = thumbs.size() - 1;
-	}
+	//int mediumPoint = (int)(thumbs.size() / 2.f);
+	//
+	//if (thumbs.size() <= 2) {
+	//	mediumPoint = thumbs.size() - 1;
+	//}
 
 	//Find in the middle of the sorted vector
-	for (size_t i = 0; i < thumbCount; i++)
-	{
-		if (thumbs[i].MiscI32v1 == mediumPoint) {
-			midSizedThumbIndex = thumbs[i].MiscI32v1;
-			break;
-		}
-	}
-	m_ThumbnailIndex = midSizedThumbIndex;
-	m_ThumbnailIndex = thumbs[mediumPoint].MiscI32v1;
+	//for (size_t i = 0; i < thumbCount; i++)
+	//{
+	//	if (thumbs[i].MiscI32v1 == mediumPoint) {
+	//		midSizedThumbIndex = thumbs[i].MiscI32v1;
+	//		break;
+	//	}
+	//}
+	//m_ThumbnailIndex = midSizedThumbIndex;
+	//m_ThumbnailIndex = thumbs[mediumPoint].MiscI32v1;
+	//m_ThumbnailIndex = thumbs[thumbs.size() - 1].MiscI32v1;
+	m_ThumbnailIndex = thumbs[0].MiscI32v1;
 
 	thumbs.clear();
 
@@ -248,8 +250,6 @@ bool RawImageDecoder::GetPreviewImage(uint8_t* &buf, GeneralMetadata& data)
 	default:
 		break;
 	}
-
-
 
 	return false;
 }

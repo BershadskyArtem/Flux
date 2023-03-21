@@ -11,9 +11,9 @@
 #include <string>
 using namespace std;
 
-
 int main()
 {
+	auto start = BenchmarkHelper::StartWatch();
 	std::string filePath = "F:\\PHOTO\\2023-02-19\\IMG_0001.CR2";
 	std::string outFilePath = "F:\\IMG_0001.jpeg";
 	RawImageDecoder* decoder = new RawImageDecoder(filePath);
@@ -22,14 +22,18 @@ int main()
 	decoder->ReadGeneralMetadata(data);
 	byte_t* pixels;
 	success = decoder->GetPreviewImage(pixels, data);
+
+	BenchmarkHelper::ShowDurationFinal(start, "Preview extracted");
+
 	JpegImageEncoder* encoder = new JpegImageEncoder(pixels, data.Width, data.Height);
 	success = encoder->Init();
 	success = encoder->FastSave(outFilePath);
 	delete[] pixels;
-
+	delete encoder;
+	delete decoder;
 	//byte_t* bitmap = new byte_t[3 * 4]{ 1,2,3,0,1,2,3,0,1,2,3,0 };
 	//byte_t* rgb = new byte_t[3 * 3];
 	//BitmapHelper::BitmapToRgb(bitmap, rgb, 3, 3, 1);
-
+	int d = 0;
 	return 0;
 }

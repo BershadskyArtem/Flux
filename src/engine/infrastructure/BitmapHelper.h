@@ -15,28 +15,28 @@ public:
 	static inline void BitmapToRgb(T* rgb, T* outBuf, int width, int height, int channelsCount = 1) {
 		int stride = GetStride(width, height, sizeof(T) * 8 * channelsCount);
 		int paddedItems = stride / (sizeof(T) * width);
+		int strideMargin = GetStrideDifference(width, height, sizeof(T) * 8 * channelsCount);
+		int littleStride = GetStride(width, height, sizeof(T) * 8);
 
+#pragma omp parallel for
 		for (int y = 0; y < height; y++)
 		{
-			byte_t* row = (byte_t*)rgb + (y * stride);
+			int row = (y * stride);
 
 			for (int x = 0; x < width; x++)
 			{
-				// Watch out for actual order (BGR)!
-				int bIndex = x * sizeof(T);
-				int gIndex = bIndex + 1;
-				int rIndex = bIndex + 2;
+				int rIndex = 3 * (y * width + x) + 0;
+				int gIndex = 3 * (y * width + x) + 1;
+				int bIndex = 3 * (y * width + x) + 2;
 
-				T pixelR = row[rIndex];
-				T pixelG = row[gIndex];
-				T pixelB = row[bIndex];
+				int bBitIndex = y * stride + x * 3 + 0;
+				int gBitIndex = y * stride + x * 3 + 1;
+				int rBitIndex = y * stride + x * 3 + 2;
 
-				row[rIndex] = pixelR;
-				row[bIndex] = pixelB;
-				row[gIndex] = pixelG;
+				outBuf[rIndex] = rgb[rBitIndex];
+				outBuf[gIndex] = rgb[gBitIndex];
+				outBuf[bIndex] = rgb[bBitIndex];
 			}
 		}
 	}
-
-}
-
+};
