@@ -17,3 +17,8 @@ int AbstractImageDecoder::Height()
 {
     return m_Height;
 }
+
+bool AbstractImageDecoder::HasErrors()
+{
+    return m_HasErrors;
+}

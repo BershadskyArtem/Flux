@@ -46,7 +46,7 @@ add_library(FLXCore SHARED
     "io/RawImageDecoder.h" 
     "io/RawImageDecoder.cpp"
 
-)
+ "io/BitmapStructureDecoder.h" "infrastructure/BitmapHelper.h" "infrastructure/BitmapHelper.cpp")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET FLXCore PROPERTY CXX_STANDARD 20)

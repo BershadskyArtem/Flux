@@ -1,7 +1,14 @@
 #include "JpegImageDecoder.h"
 
-JpegImageDecoder::JpegImageDecoder(std::string fileName) : AbstractImageDecoder(fileName) {
+JpegImageDecoder::JpegImageDecoder(unsigned char* inMemoryJpeg, long bufSize) : AbstractImageDecoder("")
+{
+    m_IsFromMemory = true;
+    m_InMemoryJpeg = inMemoryJpeg;
+    m_BufSize = bufSize;
+}
 
+JpegImageDecoder::JpegImageDecoder(std::string fileName) : AbstractImageDecoder(fileName) {
+    m_IsFromMemory = false;
 }
 
 
@@ -42,26 +49,35 @@ bool JpegImageDecoder::HasErrors() {
 }
 
 bool JpegImageDecoder::Init() {
-    std::ifstream file(m_fileName.c_str(), std::ios::binary | std::ios::ate);
 
-    if (!file) {
-        m_HasErrors = true;
-        return !m_HasErrors;
+
+    if (m_IsFromMemory) {
+        m_JpegFile = (unsigned char*)m_InMemoryJpeg;
+        m_JpegSize = m_BufSize;
     }
+    //Jpeg from file
+    else {
+        std::ifstream file(m_fileName.c_str(), std::ios::binary | std::ios::ate);
 
-    std::streamsize size = file.tellg();
+        if (!file) {
+            m_HasErrors = true;
+            return !m_HasErrors;
+        }
 
-    if (size <= 0) {
-        m_HasErrors = true;
-        return !m_HasErrors;
+        std::streamsize size = file.tellg();
+
+        if (size <= 0) {
+            m_HasErrors = true;
+            return !m_HasErrors;
+        }
+
+        m_JpegSize = static_cast<unsigned long>(size);
+        m_JpegFile = tjAlloc(m_JpegSize);
+
+        file.seekg(0, std::ios::beg);
+        file.read(reinterpret_cast<char*>(m_JpegFile), m_JpegSize);
+        file.close();
     }
-
-    m_JpegSize = static_cast<unsigned long>(size);
-    m_JpegFile = tjAlloc(m_JpegSize);
-
-    file.seekg(0, std::ios::beg);
-    file.read(reinterpret_cast<char*>(m_JpegFile), m_JpegSize);
-    file.close();
 
     m_JpegHandle = tjInitDecompress();
     if (!m_JpegHandle) {
@@ -84,7 +100,6 @@ bool JpegImageDecoder::Init() {
     m_ScaledWidth = TJSCALED(m_Width, THUMBNAIL_SCALING);
     m_ScaledHeight = TJSCALED(m_Height, THUMBNAIL_SCALING);
 
-
     return !m_HasErrors;
 }
 
@@ -94,13 +109,14 @@ JpegImageDecoder::~JpegImageDecoder() {
         tjDestroy(m_JpegHandle);
         m_JpegHandle = nullptr;
     }
-    if (m_JpegFile != nullptr) {
+    //If we own this memory
+    if (m_JpegFile != nullptr && !m_IsFromMemory) {
         tjFree(m_JpegFile);
         m_JpegFile = nullptr;
     }
 }
 
-bool JpegImageDecoder::GetPreviewImage(uint8_t* buf, GeneralMetadata& data) {
+bool JpegImageDecoder::GetPreviewImage(uint8_t* &buf, GeneralMetadata& data) {
     int pixelFormat = TJPF_RGB;
 
     auto pixelsBuf = tjAlloc(m_ScaledWidth * m_ScaledHeight * tjPixelSize[pixelFormat]);
@@ -118,7 +134,7 @@ bool JpegImageDecoder::GetPreviewImage(uint8_t* buf, GeneralMetadata& data) {
         m_HasErrors = true;
         return !m_HasErrors;
     }
-
+    buf = new uint8_t[m_ScaledHeight * m_ScaledWidth * 3];
     MemoryUtils::Copy(reinterpret_cast<char*>(pixelsBuf), reinterpret_cast<char*>(buf), tjPixelSize[pixelFormat],
         m_ScaledHeight * m_ScaledWidth);
 

@@ -14,7 +14,7 @@ bool JpegImageEncoder::Init()
 	if (m_JpegCompressor == nullptr) {
 		m_HasErrors = true;
 	}
-	return HasErrors();
+	return !HasErrors();
 }
 
 bool JpegImageEncoder::FastSave(std::string filePath)

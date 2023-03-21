@@ -14,9 +14,13 @@ private:
     tjhandle m_JpegHandle = nullptr;
     unsigned long m_JpegSize = -1;
     unsigned char* m_JpegFile = nullptr;
+    unsigned char* m_InMemoryJpeg = nullptr;
+    long m_BufSize;
     bool m_IsInitSuccessful = true;
+    bool m_IsFromMemory = false;
 public:
     JpegImageDecoder(std::string fileName);
+    JpegImageDecoder(unsigned char* inMemoryJpeg, long bufSize);
     bool ReadGeneralMetadata(GeneralMetadata& data) override;
     bool ReadExifMetadata(ExifMetadata& data) override;
     bool ReadIptcMetadata(IptcMetadata& data) override;
@@ -24,7 +28,7 @@ public:
 
     bool Init() override;
     bool HasErrors() override;
-    bool GetPreviewImage(uint8_t* buf, GeneralMetadata& data) override;
+    bool GetPreviewImage(uint8_t* &buf, GeneralMetadata& data) override;
     //bool LoadImage(float* buf) override;
     bool GetFullImage(float* buff) override;
 

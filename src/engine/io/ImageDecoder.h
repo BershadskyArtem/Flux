@@ -19,8 +19,8 @@ public:
     virtual bool ReadExifMetadata(ExifMetadata& data) = 0;
     virtual bool ReadIptcMetadata(IptcMetadata& data) = 0;
     virtual bool ReadMakerMetadata(MakerMetadata& data) = 0;
-    virtual bool HasErrors() = 0;
-    virtual bool GetPreviewImage(uint8_t* buff, GeneralMetadata& data) = 0;
+    virtual bool HasErrors();
+    virtual bool GetPreviewImage(uint8_t* &buff, GeneralMetadata& data) = 0;
     virtual bool GetFullImage(float* buff) = 0;
 
     virtual int Width();

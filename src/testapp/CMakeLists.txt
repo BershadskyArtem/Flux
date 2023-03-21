@@ -18,6 +18,8 @@ add_executable (FluxTest
     "../engine/infrastructure/MemoryUtils.cpp" 
     "../engine/infrastructure/MemoryUtils.h" 
     "../engine/infrastructure/BenchmarkHelper.h" 
+    "../engine/infrastructure/BitmapHelper.h" 
+    "../engine/infrastructure/BitmapHelper.cpp" 
     "../engine/io/ImageDecoder.h" 
     "../engine/io/ImageDecoder.cpp" 
     "../engine/io/JpegImageDecoder.h" 
@@ -30,7 +32,8 @@ add_executable (FluxTest
     "../engine/io/Encoders/ImageEncoder.h" 
     "../engine/io/Encoders/JpegImageEncoder.cpp" 
     "../engine/io/Encoders/JpegImageEncoder.h" 
-
+    "../engine/io/RawImageDecoder.h" 
+    "../engine/io/RawImageDecoder.cpp" 
 )
 
 if ( MSVC )
@@ -77,7 +80,7 @@ endif()
 target_link_libraries(FluxTest PRIVATE OpenMP::OpenMP_CXX)
 target_link_libraries(FluxTest PRIVATE optimized;${CMAKE_SOURCE_DIR}/out/build/x64-Debug/vcpkg_installed/x64-windows-static/lib/turbojpeg.lib;debug;${CMAKE_SOURCE_DIR}/out/build/x64-Debug/vcpkg_installed/x64-windows-static/debug/lib/turbojpeg.lib)
 target_include_directories(FluxTest PRIVATE ${JPEG_INCLUDE_DIR})
-#target_link_libraries(FluxTest PRIVATE libraw::raw_r)
+target_link_libraries(FluxTest PRIVATE libraw::raw_r)
 target_link_libraries(FluxTest PRIVATE xsimd)
 
 
