@@ -4,6 +4,8 @@ find_package(libraw CONFIG REQUIRED)
 find_package(xsimd CONFIG REQUIRED)
 find_package(OpenMP REQUIRED)
 
+
+
 add_executable (FluxTest 
     "Flux.cpp" 
     "Flux.h" 
@@ -76,12 +78,12 @@ endif()
 
 
 
-
 target_link_libraries(FluxTest PRIVATE OpenMP::OpenMP_CXX)
 target_link_libraries(FluxTest PRIVATE optimized;${CMAKE_SOURCE_DIR}/out/build/x64-Debug/vcpkg_installed/x64-windows-static/lib/turbojpeg.lib;debug;${CMAKE_SOURCE_DIR}/out/build/x64-Debug/vcpkg_installed/x64-windows-static/debug/lib/turbojpeg.lib)
 target_include_directories(FluxTest PRIVATE ${JPEG_INCLUDE_DIR})
 target_link_libraries(FluxTest PRIVATE libraw::raw_r)
 target_link_libraries(FluxTest PRIVATE xsimd)
+
 
 
 

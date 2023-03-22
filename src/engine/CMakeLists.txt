@@ -52,8 +52,6 @@ if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET FLXCore PROPERTY CXX_STANDARD 20)
 endif()
 
-
-
 if ( MSVC )
     string(REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
     set(CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
@@ -91,11 +89,12 @@ if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET FLXCore PROPERTY CXX_STANDARD 20)
 endif()
 
+target_include_directories(FLXCore PRIVATE ${JPEG_INCLUDE_DIR})
 target_link_libraries(FLXCore PRIVATE OpenMP::OpenMP_CXX)
 target_link_libraries(FLXCore PRIVATE optimized;${CMAKE_SOURCE_DIR}/out/build/x64-Debug/vcpkg_installed/x64-windows-static/lib/turbojpeg.lib;debug;${CMAKE_SOURCE_DIR}/out/build/x64-Debug/vcpkg_installed/x64-windows-static/debug/lib/turbojpeg.lib)
-target_include_directories(FLXCore PRIVATE ${JPEG_INCLUDE_DIR})
 target_link_libraries(FLXCore PRIVATE libraw::raw_r)
 target_link_libraries(FLXCore PRIVATE xsimd)
+
 
 
 

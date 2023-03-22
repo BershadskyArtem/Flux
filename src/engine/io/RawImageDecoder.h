@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <algorithm>
 #include <vector>
 #include <libraw/libraw.h>
@@ -12,7 +13,7 @@ private:
     LibRaw* processor;
     bool m_HasThumbnail;
     int m_ThumbnailIndex;
-
+    libraw_processed_image_t* m_Image = nullptr;
 
     bool GetHalfSizedRaw(uint8_t* &buf, GeneralMetadata& data);
     bool GetPreviewFromJpeg(unsigned char* inMemoryJpeg,long inMemoryJpegSize, uint8_t* &buf, GeneralMetadata& data);

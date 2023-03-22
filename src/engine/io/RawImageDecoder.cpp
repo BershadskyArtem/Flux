@@ -5,7 +5,7 @@ bool RawImageDecoder::GetHalfSizedRaw(uint8_t*& buf, GeneralMetadata& data)
 	return false;
 }
 
-bool RawImageDecoder::GetPreviewFromJpeg(unsigned char* inMemoryJpeg, long inMemoryJpegSize, uint8_t* &buf, GeneralMetadata& data)
+bool RawImageDecoder::GetPreviewFromJpeg(unsigned char* inMemoryJpeg, long inMemoryJpegSize, uint8_t*& buf, GeneralMetadata& data)
 {
 	JpegImageDecoder* decoder = new JpegImageDecoder(inMemoryJpeg, inMemoryJpegSize);
 	bool success = decoder->Init();
@@ -23,10 +23,10 @@ bool RawImageDecoder::GetPreviewFromJpeg(unsigned char* inMemoryJpeg, long inMem
 	return true;
 }
 
-bool RawImageDecoder::GetPreviewFromBitmap(byte_t* bitmap, int width, int height, int channelsCount, uint8_t* &buf, GeneralMetadata& data)
+bool RawImageDecoder::GetPreviewFromBitmap(byte_t* bitmap, int width, int height, int channelsCount, uint8_t*& buf, GeneralMetadata& data)
 {
 	buf = new uint8_t[width * height * channelsCount];
-	BitmapHelper::BitmapToRgb(bitmap, buf, width, height,3);
+	BitmapHelper::BitmapToRgb(bitmap, buf, width, height, 3);
 	data.Width = width;
 	data.Height = height;
 	return true;
@@ -143,6 +143,39 @@ bool RawImageDecoder::Init()
 	m_Width = processor->imgdata.sizes.width;
 	m_Height = processor->imgdata.sizes.height;
 
+	processor->imgdata.params.output_bps = 16;
+
+
+
+	if (false) {
+		processor->imgdata.params.output_color = 1;
+		processor->imgdata.params.gamm[0] = 1.0 / 2.4;
+		processor->imgdata.params.gamm[1] = 12.92;
+	}
+	else {
+		processor->imgdata.params.output_color = 0;
+		processor->imgdata.params.gamm[0] = 1.0f;
+		processor->imgdata.params.gamm[1] = 1.0f;
+	}
+
+	
+	processor->imgdata.params.use_auto_wb = false;
+	processor->imgdata.params.use_camera_wb = false;
+	//Always use camera color space
+	processor->imgdata.params.use_camera_matrix = 3;
+	
+	//Use Modified AHD interpolation (by Anton Petrusevich)
+	processor->imgdata.params.user_qual = 12;
+	processor->imgdata.params.no_auto_bright = true;
+
+	int success = processor->unpack();
+
+	if (success != 0)
+	{
+		m_HasErrors = true;
+		return false;
+	}
+
 
 	//Find Mid-sized preview
 	int thumbCount = processor->imgdata.thumbs_list.thumbcount;
@@ -161,7 +194,7 @@ bool RawImageDecoder::Init()
 	{
 		libraw_thumbnail_item_t thumb = processor->imgdata.thumbs_list.thumblist[i];
 		GeneralMetadataInternal data = GeneralMetadataInternal();
-		
+
 		if (!IsSupportedThumbnailformat(thumb.tformat))
 			continue;
 		data.Width = thumb.twidth;
@@ -200,7 +233,7 @@ bool RawImageDecoder::Init()
 	return true;
 }
 
-bool RawImageDecoder::GetPreviewImage(uint8_t* &buf, GeneralMetadata& data)
+bool RawImageDecoder::GetPreviewImage(uint8_t*& buf, GeneralMetadata& data)
 {
 	//Assume we have a thumbnail
 	int err = processor->unpack_thumb_ex(m_ThumbnailIndex);
@@ -256,8 +289,38 @@ bool RawImageDecoder::GetPreviewImage(uint8_t* &buf, GeneralMetadata& data)
 
 bool RawImageDecoder::GetFullImage(float* buff)
 {
-	return false;
+	int success = 0;
+
+	if (buff == nullptr) {
+		return false;
+	}
+
+	if (m_Image == nullptr) {
+		processor->dcraw_process();
+		m_Image = processor->dcraw_make_mem_image(&success);
+		if (success != 0)
+		{
+			m_HasErrors = true;
+			return false;
+		}
+	}
+	
+	//From https://github.com/OpenImageIO/oiio/blob/8e9b334a255148d8f435b617e98cbc90a0cf99a7/src/raw.imageio/rawinput.cpp
+	// line 1577
+#pragma omp parallel for
+	for (int y = 0; y < m_Height; y++)
+	{
+		uint16_t* rowStart = &(((unsigned short*)m_Image->data)[m_Width * 3 * y]);
+		for (int x = 0; x < m_Width; x++)
+		{
+			buff[3 * (y * m_Width + x) + 0] = rowStart[x * 3 + 0] / 65536.0f;
+			buff[3 * (y * m_Width + x) + 1] = rowStart[x * 3 + 1] / 65536.0f;
+			buff[3 * (y * m_Width + x) + 2] = rowStart[x * 3 + 2] / 65536.0f;
+		}
+	}
+	return true;
 }
+
 
 int RawImageDecoder::ScaledWidth()
 {
@@ -273,4 +336,8 @@ RawImageDecoder::~RawImageDecoder()
 {
 	processor->recycle();
 	delete processor;
+
+	if (m_Image != nullptr) {
+		delete m_Image;
+	}
 }

@@ -22,7 +22,7 @@ int main()
 	decoder->ReadGeneralMetadata(data);
 	byte_t* pixels;
 	success = decoder->GetPreviewImage(pixels, data);
-
+	decoder->GetFullImage(nullptr);
 	BenchmarkHelper::ShowDurationFinal(start, "Preview extracted");
 
 	JpegImageEncoder* encoder = new JpegImageEncoder(pixels, data.Width, data.Height);
@@ -35,5 +35,6 @@ int main()
 	//byte_t* rgb = new byte_t[3 * 3];
 	//BitmapHelper::BitmapToRgb(bitmap, rgb, 3, 3, 1);
 	int d = 0;
+
 	return 0;
 }

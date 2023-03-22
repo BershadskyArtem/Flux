@@ -1,4 +1,5 @@
 #pragma once
+
 #include <xsimd/xsimd.hpp>
 
 #define pixel_t float

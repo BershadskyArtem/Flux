@@ -2,7 +2,7 @@
 // or project specific include files.
 
 #pragma once
-
+#include "../engine/infrastructure/FLXDefines.h"
 #include <omp.h>
 #include <iostream>
 #include "turbojpeg.h"
