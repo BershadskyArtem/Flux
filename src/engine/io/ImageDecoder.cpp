@@ -18,6 +18,16 @@ int AbstractImageDecoder::Height()
     return m_Height;
 }
 
+int AbstractImageDecoder::ScaledWidth()
+{
+    return m_ScaledWidth;
+}
+
+int AbstractImageDecoder::ScaledHeight()
+{
+    return m_ScaledHeight;
+}
+
 bool AbstractImageDecoder::HasErrors()
 {
     return m_HasErrors;

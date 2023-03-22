@@ -15,21 +15,23 @@ private:
     int m_ThumbnailIndex;
     libraw_processed_image_t* m_Image = nullptr;
 
-    bool GetHalfSizedRaw(uint8_t* &buf, GeneralMetadata& data);
-    bool GetPreviewFromJpeg(unsigned char* inMemoryJpeg,long inMemoryJpegSize, uint8_t* &buf, GeneralMetadata& data);
-    bool GetPreviewFromBitmap(byte_t* bitmap, int width, int height,int channelsCount, uint8_t* &buf, GeneralMetadata& data);
+    bool GetHalfSizedRaw(uint8_t* buf);
+    bool GetPreviewFromJpeg(unsigned char* inMemoryJpeg,long inMemoryJpegSize, uint8_t* buf);
+    bool GetPreviewFromBitmap(byte_t* bitmap, int width, int height,int channelsCount, uint8_t* buf);
     bool IsSupportedThumbnailformat(LibRaw_thumbnail_formats format);
     bool IsSupportedThumbnailformat(LibRaw_internal_thumbnail_formats format);
 
 public:
     RawImageDecoder(std::string fileName);
     bool ReadGeneralMetadata(GeneralMetadata& data) override;
+    bool ReadPreviewGeneralMetadata(GeneralMetadata& data) override;
     bool ReadExifMetadata(ExifMetadata& data) override;
     bool ReadIptcMetadata(IptcMetadata& data) override;
     bool ReadMakerMetadata(MakerMetadata& data) override;
 
+
     bool Init() override;
-    bool GetPreviewImage(uint8_t* &buf, GeneralMetadata& data) override;
+    bool GetPreviewImage(uint8_t* buf) override;
     //bool LoadImage(float* buf) override;
     bool GetFullImage(float* buff) override;
 

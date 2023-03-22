@@ -44,18 +44,22 @@ bool JpegImageDecoder::ReadGeneralMetadata(GeneralMetadata& data) {
     return !hadErrors;
 }
 
+bool JpegImageDecoder::ReadPreviewGeneralMetadata(GeneralMetadata& data)
+{
+    data.Width = m_ScaledWidth;
+    data.Height = m_ScaledHeight;
+    return !HasErrors();
+}
+
 bool JpegImageDecoder::HasErrors() {
     return m_HasErrors;
 }
 
 bool JpegImageDecoder::Init() {
-
-
     if (m_IsFromMemory) {
         m_JpegFile = (unsigned char*)m_InMemoryJpeg;
         m_JpegSize = m_BufSize;
     }
-    //Jpeg from file
     else {
         std::ifstream file(m_fileName.c_str(), std::ios::binary | std::ios::ate);
 
@@ -91,7 +95,7 @@ bool JpegImageDecoder::Init() {
 
     if (!this->ReadGeneralMetadata(metadata)) {
         m_HasErrors = true;
-        return !m_HasErrors;
+        return !HasErrors();
     }
 
     m_Width = metadata.Width;
@@ -100,7 +104,7 @@ bool JpegImageDecoder::Init() {
     m_ScaledWidth = TJSCALED(m_Width, THUMBNAIL_SCALING);
     m_ScaledHeight = TJSCALED(m_Height, THUMBNAIL_SCALING);
 
-    return !m_HasErrors;
+    return !HasErrors();
 }
 
 
@@ -116,14 +120,14 @@ JpegImageDecoder::~JpegImageDecoder() {
     }
 }
 
-bool JpegImageDecoder::GetPreviewImage(uint8_t* &buf, GeneralMetadata& data) {
+bool JpegImageDecoder::GetPreviewImage(uint8_t* buf) {
     int pixelFormat = TJPF_RGB;
 
     auto pixelsBuf = tjAlloc(m_ScaledWidth * m_ScaledHeight * tjPixelSize[pixelFormat]);
 
     if (pixelsBuf == nullptr) {
         m_HasErrors = true;
-        return !m_HasErrors;
+        return !HasErrors();
     }
 
     int result = tjDecompress2(m_JpegHandle, m_JpegFile, m_JpegSize, pixelsBuf, m_ScaledWidth, 0, m_ScaledHeight,
@@ -132,32 +136,25 @@ bool JpegImageDecoder::GetPreviewImage(uint8_t* &buf, GeneralMetadata& data) {
     if (result < 0) {
         tjFree(pixelsBuf);
         m_HasErrors = true;
-        return !m_HasErrors;
+        return !HasErrors();
     }
-    buf = new uint8_t[m_ScaledHeight * m_ScaledWidth * 3];
+
     MemoryUtils::Copy(reinterpret_cast<char*>(pixelsBuf), reinterpret_cast<char*>(buf), tjPixelSize[pixelFormat],
         m_ScaledHeight * m_ScaledWidth);
 
     tjFree(pixelsBuf);
 
-    data.Width = m_ScaledWidth;
-    data.Height = m_ScaledHeight;
-
-    return !m_HasErrors;
+    return !HasErrors();
 }
 
 bool JpegImageDecoder::GetFullImage(float* buf) {
     int pixelFormat = TJPF_RGB;
 
-#ifdef _WIN32
-    //pixelFormat = TJPF_BGR;
-#endif
-
     auto pixelsBuf = tjAlloc(Width() * Height() * tjPixelSize[pixelFormat]);
 
     if (pixelsBuf == nullptr) {
         m_HasErrors = true;
-        return !m_HasErrors;
+        return !HasErrors();
     }
 
     int result = tjDecompress2(m_JpegHandle, m_JpegFile, m_JpegSize, pixelsBuf, Width(), 0, Height(), pixelFormat, 0);
@@ -165,14 +162,14 @@ bool JpegImageDecoder::GetFullImage(float* buf) {
     if (result < 0) {
         tjFree(pixelsBuf);
         m_HasErrors = true;
-        return !m_HasErrors;
+        return !HasErrors();
     }
 
     MemoryUtils::CopyFromUint8ToFloat(pixelsBuf, buf, 3, Width() * Height(), true);
 
     tjFree(pixelsBuf);
 
-    return !m_HasErrors;
+    return !HasErrors();
 }
 
 

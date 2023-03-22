@@ -31,9 +31,6 @@ int main()
 	delete[] pixels;
 	delete encoder;
 	delete decoder;
-	//byte_t* bitmap = new byte_t[3 * 4]{ 1,2,3,0,1,2,3,0,1,2,3,0 };
-	//byte_t* rgb = new byte_t[3 * 3];
-	//BitmapHelper::BitmapToRgb(bitmap, rgb, 3, 3, 1);
 	int d = 0;
 
 	return 0;

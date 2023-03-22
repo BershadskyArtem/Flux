@@ -1,11 +1,11 @@
 #include "RawImageDecoder.h"
 
-bool RawImageDecoder::GetHalfSizedRaw(uint8_t*& buf, GeneralMetadata& data)
+bool RawImageDecoder::GetHalfSizedRaw(uint8_t* buf)
 {
 	return false;
 }
 
-bool RawImageDecoder::GetPreviewFromJpeg(unsigned char* inMemoryJpeg, long inMemoryJpegSize, uint8_t*& buf, GeneralMetadata& data)
+bool RawImageDecoder::GetPreviewFromJpeg(unsigned char* inMemoryJpeg, long inMemoryJpegSize, uint8_t* buf)
 {
 	JpegImageDecoder* decoder = new JpegImageDecoder(inMemoryJpeg, inMemoryJpegSize);
 	bool success = decoder->Init();
@@ -14,7 +14,7 @@ bool RawImageDecoder::GetPreviewFromJpeg(unsigned char* inMemoryJpeg, long inMem
 		return !HasErrors();
 	}
 
-	success = decoder->GetPreviewImage(buf, data);
+	success = decoder->GetPreviewImage(buf);
 	if (!success) {
 		m_HasErrors = true;
 		return !HasErrors();
@@ -23,12 +23,10 @@ bool RawImageDecoder::GetPreviewFromJpeg(unsigned char* inMemoryJpeg, long inMem
 	return true;
 }
 
-bool RawImageDecoder::GetPreviewFromBitmap(byte_t* bitmap, int width, int height, int channelsCount, uint8_t*& buf, GeneralMetadata& data)
+bool RawImageDecoder::GetPreviewFromBitmap(byte_t* bitmap, int width, int height, int channelsCount, uint8_t* buf)
 {
 	buf = new uint8_t[width * height * channelsCount];
 	BitmapHelper::BitmapToRgb(bitmap, buf, width, height, 3);
-	data.Width = width;
-	data.Height = height;
 	return true;
 }
 
@@ -108,17 +106,20 @@ RawImageDecoder::RawImageDecoder(std::string fileName) : AbstractImageDecoder(fi
 
 bool RawImageDecoder::ReadGeneralMetadata(GeneralMetadata& data)
 {
-	if (HasErrors()) {
-		return false;
-	}
 	data.Width = m_Width;
 	data.Height = m_Height;
-	return true;
+	return !HasErrors();
+}
+
+bool RawImageDecoder::ReadPreviewGeneralMetadata(GeneralMetadata& data)
+{
+	data.Width = m_ScaledWidth;
+	data.Height = m_ScaledHeight;
+	return !HasErrors();
 }
 
 bool RawImageDecoder::ReadExifMetadata(ExifMetadata& data)
 {
-
 	return false;
 }
 
@@ -145,18 +146,16 @@ bool RawImageDecoder::Init()
 
 	processor->imgdata.params.output_bps = 16;
 
-
-
-	if (false) {
-		processor->imgdata.params.output_color = 1;
-		processor->imgdata.params.gamm[0] = 1.0 / 2.4;
-		processor->imgdata.params.gamm[1] = 12.92;
-	}
-	else {
+	//if (false) {
+	//	processor->imgdata.params.output_color = 1;
+	//	processor->imgdata.params.gamm[0] = 1.0 / 2.4;
+	//	processor->imgdata.params.gamm[1] = 12.92;
+	//}
+	//else {
 		processor->imgdata.params.output_color = 0;
 		processor->imgdata.params.gamm[0] = 1.0f;
 		processor->imgdata.params.gamm[1] = 1.0f;
-	}
+	//}
 
 	
 	processor->imgdata.params.use_auto_wb = false;
@@ -173,9 +172,8 @@ bool RawImageDecoder::Init()
 	if (success != 0)
 	{
 		m_HasErrors = true;
-		return false;
+		return !HasErrors();
 	}
-
 
 	//Find Mid-sized preview
 	int thumbCount = processor->imgdata.thumbs_list.thumbcount;
@@ -183,7 +181,7 @@ bool RawImageDecoder::Init()
 
 	if (thumbCount == 0) {
 		m_HasThumbnail = false;
-		return true;
+		return !HasErrors();
 	}
 
 	int midSizedThumbIndex = 0;
@@ -208,6 +206,7 @@ bool RawImageDecoder::Init()
 		return a.Width > b.Width;
 		});
 
+	int targetPreview = 0;
 
 	//int mediumPoint = (int)(thumbs.size() / 2.f);
 	//
@@ -226,16 +225,25 @@ bool RawImageDecoder::Init()
 	//m_ThumbnailIndex = midSizedThumbIndex;
 	//m_ThumbnailIndex = thumbs[mediumPoint].MiscI32v1;
 	//m_ThumbnailIndex = thumbs[thumbs.size() - 1].MiscI32v1;
-	m_ThumbnailIndex = thumbs[0].MiscI32v1;
+	m_ThumbnailIndex = thumbs[targetPreview].MiscI32v1;
+
+	m_ScaledHeight = thumbs[targetPreview].Height;
+	m_ScaledHeight = thumbs[targetPreview].Width;
 
 	thumbs.clear();
 
-	return true;
+	return !HasErrors();
 }
 
-bool RawImageDecoder::GetPreviewImage(uint8_t*& buf, GeneralMetadata& data)
+bool RawImageDecoder::GetPreviewImage(uint8_t* buf)
 {
-	//Assume we have a thumbnail
+	//If we has errors we exit with false(fail) flag
+	if (HasErrors())
+		return !HasErrors();
+
+	if(!m_HasThumbnail)
+		return false;
+
 	int err = processor->unpack_thumb_ex(m_ThumbnailIndex);
 
 	if (err != LIBRAW_SUCCESS)
@@ -245,8 +253,6 @@ bool RawImageDecoder::GetPreviewImage(uint8_t*& buf, GeneralMetadata& data)
 		return !HasErrors();
 	}
 
-	//processor->imgdata.thumbnail.
-
 	//Get thumb info
 	LibRaw_thumbnail_formats thumbFormat = processor->imgdata.thumbnail.tformat;
 	long thumbSize = processor->imgdata.thumbnail.tlength;
@@ -254,6 +260,7 @@ bool RawImageDecoder::GetPreviewImage(uint8_t*& buf, GeneralMetadata& data)
 	int thumbWidth = processor->imgdata.thumbnail.twidth;
 	int thumbHeight = processor->imgdata.thumbnail.theight;
 	int channelCount = processor->imgdata.thumbnail.tcolors;
+
 	switch (thumbFormat)
 	{
 	case LIBRAW_THUMBNAIL_UNKNOWN:
@@ -261,12 +268,13 @@ bool RawImageDecoder::GetPreviewImage(uint8_t*& buf, GeneralMetadata& data)
 		return !HasErrors();
 		break;
 	case LIBRAW_THUMBNAIL_JPEG:
-		return this->GetPreviewFromJpeg(thumbPtr, thumbSize, buf, data);
+		return this->GetPreviewFromJpeg(thumbPtr, thumbSize, buf);
 		break;
 	case LIBRAW_THUMBNAIL_BITMAP:
-		this->GetPreviewFromBitmap(thumbPtr, thumbWidth, thumbHeight, channelCount, buf, data);
+		return this->GetPreviewFromBitmap(thumbPtr, thumbWidth, thumbHeight, channelCount, buf);
 		break;
 	case LIBRAW_THUMBNAIL_BITMAP16:
+		return this->GetPreviewFromBitmap(thumbPtr, thumbWidth, thumbHeight, channelCount, buf);
 		break;
 	case LIBRAW_THUMBNAIL_LAYER:
 		m_HasErrors = true;
@@ -281,10 +289,9 @@ bool RawImageDecoder::GetPreviewImage(uint8_t*& buf, GeneralMetadata& data)
 		return !HasErrors();
 		break;
 	default:
+		return false;
 		break;
 	}
-
-	return false;
 }
 
 bool RawImageDecoder::GetFullImage(float* buff)
@@ -301,26 +308,31 @@ bool RawImageDecoder::GetFullImage(float* buff)
 		if (success != 0)
 		{
 			m_HasErrors = true;
-			return false;
+			return !HasErrors();
 		}
 	}
 	
+	if (m_Image->colors != 3) {
+		m_HasErrors = true;
+		return !HasErrors();
+	}
+
 	//From https://github.com/OpenImageIO/oiio/blob/8e9b334a255148d8f435b617e98cbc90a0cf99a7/src/raw.imageio/rawinput.cpp
 	// line 1577
 #pragma omp parallel for
 	for (int y = 0; y < m_Height; y++)
 	{
 		uint16_t* rowStart = &(((unsigned short*)m_Image->data)[m_Width * 3 * y]);
+		int rowIndexTarget = y * m_Width * 3;
 		for (int x = 0; x < m_Width; x++)
 		{
-			buff[3 * (y * m_Width + x) + 0] = rowStart[x * 3 + 0] / 65536.0f;
-			buff[3 * (y * m_Width + x) + 1] = rowStart[x * 3 + 1] / 65536.0f;
-			buff[3 * (y * m_Width + x) + 2] = rowStart[x * 3 + 2] / 65536.0f;
+			buff[(rowIndexTarget + x * 3) + 0] = rowStart[x * 3 + 0] / 65536.0f;
+			buff[(rowIndexTarget + x * 3) + 1] = rowStart[x * 3 + 1] / 65536.0f;
+			buff[(rowIndexTarget + x * 3) + 2] = rowStart[x * 3 + 2] / 65536.0f;
 		}
 	}
 	return true;
 }
-
 
 int RawImageDecoder::ScaledWidth()
 {
