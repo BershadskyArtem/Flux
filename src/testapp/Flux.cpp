@@ -13,25 +13,99 @@ using namespace std;
 
 int main()
 {
-	auto start = BenchmarkHelper::StartWatch();
-	std::string filePath = "F:\\PHOTO\\2023-02-19\\IMG_0001.CR2";
-	std::string outFilePath = "F:\\IMG_0001.jpeg";
-	RawImageDecoder* decoder = new RawImageDecoder(filePath);
-	bool success = decoder->Init();
-	GeneralMetadata data = GeneralMetadata();
-	decoder->ReadGeneralMetadata(data);
-	byte_t* pixels;
-	success = decoder->GetPreviewImage(pixels, data);
-	decoder->GetFullImage(nullptr);
-	BenchmarkHelper::ShowDurationFinal(start, "Preview extracted");
+	
+	//std::string filePath = "F:\\PHOTO\\2023-02-19\\IMG_0001.CR2";
+	//std::string outFilePath = "F:\\IMG_0001.jpeg";
+	
 
-	JpegImageEncoder* encoder = new JpegImageEncoder(pixels, data.Width, data.Height);
-	success = encoder->Init();
-	success = encoder->FastSave(outFilePath);
-	delete[] pixels;
-	delete encoder;
-	delete decoder;
-	int d = 0;
+	std::string inputFolder = "C:\\Users\\Artyom\\Desktop\\RawImageSamples";
+
+
+	std::string files[] = { "DSC_0420.NEF" , "sample1.cr2", "Y-JG-CANON-EOS-R7-0011.CR3", "Y-JG-CANON-EOS-R7-0095.CR3", "DSC02077.ARW", "IMGP0763.DNG", "DSCF3655.RAF", "Canon - PowerShot SX260 HS - 12bit (4 3).CRW"};
+
+
+//#pragma omp parallel for
+	for (int i = 0; i < 8; i++)
+	{
+		std::string fileN = files[i];
+		std::cout << "Preview extraction started for file: " << fileN << std::endl;
+		std::string filePath = inputFolder + "\\" + fileN;
+		std::string outFilePath = "F:\\IMG_000" + std::to_string(i + 2) + ".jpeg";
+
+
+		auto start = BenchmarkHelper::StartWatch();
+		ImageInput* input = new ImageInput(filePath);
+		bool success = input->Init();
+
+		if (!success)
+		{
+			delete input;
+
+			std::cout << "Failed to init decoder." << std::endl;
+			std::cout << std::endl;
+			continue;
+		}
+
+		GeneralMetadata* data = input->ReadPreviewGeneralMetadata();
+
+		if (data == nullptr) {
+			delete data;
+			delete input;
+			std::cout << "Failed to load preview metadata." << std::endl;
+			std::cout << std::endl;
+			continue;
+		}
+
+		auto image = input->GetPreview();
+
+		if (image == nullptr) {
+			delete data;
+			delete input;
+			std::cout << "Failed to load preview pixels." << std::endl;
+			std::cout << std::endl;
+			continue;
+		}
+
+		BenchmarkHelper::ShowDurationFinal(start, "Preview extracted");
+
+		JpegImageEncoder* encoder = new JpegImageEncoder((byte_t*)(image->Pixels), image->Width, image->Height);
+		success = encoder->Init();
+
+		if (!success) {
+			ImageInput::FreeFluxImage(image);
+			delete input;
+			delete data;
+			delete encoder;
+			std::cout << "Failed to init jpeg encoder." << std::endl;
+			std::cout << std::endl;
+			continue;
+		}
+
+		success = encoder->FastSave(outFilePath);
+
+		if (!success) {
+			ImageInput::FreeFluxImage(image);
+			delete input;
+			delete data;
+			delete encoder;
+			std::cout << "Failed to save jpeg file." << std::endl;
+			std::cout << std::endl;
+			continue;
+		}
+
+
+		ImageInput::FreeFluxImage(image);
+		delete input;
+		delete encoder;
+		delete data;
+
+		std::cout << std::endl;
+	}
+
+
+
+
+	
 
 	return 0;
 }

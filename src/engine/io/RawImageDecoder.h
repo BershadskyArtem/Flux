@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
+#include <mutex>
 #include <libraw/libraw.h>
 #include "ImageDecoder.h"
 #include "JpegImageDecoder.h"
@@ -10,8 +11,13 @@
 
 class RawImageDecoder : public AbstractImageDecoder {
 private:
+    static std::mutex s_OpenRawMutex;
+    static std::mutex s_UnpackThumbMutex;
+    static std::mutex s_UnpackRawMutex;
+
     LibRaw* processor;
     bool m_HasThumbnail;
+    bool m_Unpacked = false;
     int m_ThumbnailIndex;
     libraw_processed_image_t* m_Image = nullptr;
 

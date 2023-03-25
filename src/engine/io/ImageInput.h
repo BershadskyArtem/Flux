@@ -3,6 +3,7 @@
 #include "ImageDecoder.h"
 #include "../infrastructure/InteropTypes.h"
 #include "JpegImageDecoder.h"
+#include "RawImageDecoder.h"
 
 class ImageInput {
 protected:
@@ -14,6 +15,7 @@ public:
     FluxImage* GetPreview();
     FluxImage* DecodeImage();
     GeneralMetadata* ReadGeneralMetadata();
+    GeneralMetadata* ReadPreviewGeneralMetadata();
     ExifMetadata* ReadExifMetadata();
     IptcMetadata* ReadIptcMetadata();
     MakerMetadata* ReadMakerMetadata();
@@ -22,6 +24,9 @@ public:
 
     int Width();
     int Height();
+
+    int ScaledWidth();
+    int ScaledHeight();
 
     bool Init();
     bool HasErrors();
