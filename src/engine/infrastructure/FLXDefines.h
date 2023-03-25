@@ -12,6 +12,8 @@
 #define vfloat xsimd::batch<pixel_t, SIMD_ARCH>
 #define vint xsimd::batch<int, SIMD_ARCH>
 
+constexpr int LUT_DIM = 32;
+
 
 
 

@@ -1,111 +1,53 @@
-﻿#include <chrono>
-#include "Flux.h"
-#include "../engine/Color/Converter.h"
-#include "../engine/infrastructure/LUTf3d.h"
-#include "../engine/io/ImageInput.h"
-#include "../engine/io/Encoders/JpegImageEncoder.h"
-#include "../engine/infrastructure/PixelsHelper.h"
-#include "../engine/infrastructure/BenchmarkHelper.h"
-#include "../engine/infrastructure/BitmapHelper.h"
-#include "../engine/io/RawImageDecoder.h"
-#include <string>
+﻿#include "Flux.h"
+
 using namespace std;
 
 int main()
 {
-	
-	//std::string filePath = "F:\\PHOTO\\2023-02-19\\IMG_0001.CR2";
-	//std::string outFilePath = "F:\\IMG_0001.jpeg";
-	
+	float hiCoeffs[] = {
+		-0.48296291314469025,
+		0.836516303737469,
+		-0.22414386804185735,
+		-0.12940952255092145
+	};
 
-	std::string inputFolder = "C:\\Users\\Artyom\\Desktop\\RawImageSamples";
+	float loCoeffs[] = {
+		-0.12940952255092145,
+		0.22414386804185735,
+		0.836516303737469,
+		0.48296291314469025
+	};
 
+	const int filterSize = 4;
+	const int inputLength = 8;
 
-	std::string files[] = { "DSC_0420.NEF" , "sample1.cr2", "Y-JG-CANON-EOS-R7-0011.CR3", "Y-JG-CANON-EOS-R7-0095.CR3", "DSC02077.ARW", "IMGP0763.DNG", "DSCF3655.RAF", "Canon - PowerShot SX260 HS - 12bit (4 3).CRW"};
+	float input[] = { 0, 1, 5, 1, 0, 6, 0, 1 };
+	float hiOutput[inputLength] = {};
+	float lowOutput[inputLength] = {};
 
-
-//#pragma omp parallel for
-	for (int i = 0; i < 8; i++)
+	for (int i = 2; i < inputLength + filterSize - 2; i += 2)
 	{
-		std::string fileN = files[i];
-		std::cout << "Preview extraction started for file: " << fileN << std::endl;
-		std::string filePath = inputFolder + "\\" + fileN;
-		std::string outFilePath = "F:\\IMG_000" + std::to_string(i + 2) + ".jpeg";
-
-
-		auto start = BenchmarkHelper::StartWatch();
-		ImageInput* input = new ImageInput(filePath);
-		bool success = input->Init();
-
-		if (!success)
+		for (int j = 0; j < filterSize; j++)
 		{
-			delete input;
-
-			std::cout << "Failed to init decoder." << std::endl;
-			std::cout << std::endl;
-			continue;
+			int index = i - j;
+			if (index < 0) {
+				index += inputLength;
+			}
+			if (index > inputLength - 1) {
+				index -= inputLength;
+			}
+			hiOutput[(i / 2) - 1] += input[index] * hiCoeffs[j];
+			lowOutput[(i / 2) - 1] += input[index] * loCoeffs[j];
 		}
+	}
 
-		GeneralMetadata* data = input->ReadPreviewGeneralMetadata();
-
-		if (data == nullptr) {
-			delete data;
-			delete input;
-			std::cout << "Failed to load preview metadata." << std::endl;
-			std::cout << std::endl;
-			continue;
-		}
-
-		auto image = input->GetPreview();
-
-		if (image == nullptr) {
-			delete data;
-			delete input;
-			std::cout << "Failed to load preview pixels." << std::endl;
-			std::cout << std::endl;
-			continue;
-		}
-
-		BenchmarkHelper::ShowDurationFinal(start, "Preview extracted");
-
-		JpegImageEncoder* encoder = new JpegImageEncoder((byte_t*)(image->Pixels), image->Width, image->Height);
-		success = encoder->Init();
-
-		if (!success) {
-			ImageInput::FreeFluxImage(image);
-			delete input;
-			delete data;
-			delete encoder;
-			std::cout << "Failed to init jpeg encoder." << std::endl;
-			std::cout << std::endl;
-			continue;
-		}
-
-		success = encoder->FastSave(outFilePath);
-
-		if (!success) {
-			ImageInput::FreeFluxImage(image);
-			delete input;
-			delete data;
-			delete encoder;
-			std::cout << "Failed to save jpeg file." << std::endl;
-			std::cout << std::endl;
-			continue;
-		}
-
-
-		ImageInput::FreeFluxImage(image);
-		delete input;
-		delete encoder;
-		delete data;
-
+	for (int i = 0; i < inputLength; i++)
+	{
+		std::cout << hiOutput[i] << std::endl;
+		std::cout << lowOutput[i] << std::endl;
 		std::cout << std::endl;
 	}
 
-
-
-
-	
 
 	return 0;
 }

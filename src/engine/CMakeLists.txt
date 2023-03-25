@@ -45,8 +45,15 @@ add_library(FLXCore SHARED
     "Pipeline/FluxPipeline.h" 
     "io/RawImageDecoder.h" 
     "io/RawImageDecoder.cpp"
-
- "io/BitmapStructureDecoder.h" "infrastructure/BitmapHelper.h" "infrastructure/BitmapHelper.cpp")
+    "io/BitmapStructureDecoder.h" 
+    "infrastructure/BitmapHelper.h" 
+    "infrastructure/BitmapHelper.cpp" 
+    "Color/ColorLUTConverter.h" 
+    "Color/ColorLUTConverter.cpp" 
+    "Core/FluxImageProcessor.h" 
+    "Core/FluxImageProcessor.cpp" 
+    "Core/FluxWaveletDenoising.h" 
+    "Core/FluxWaveletDenoising.cpp")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET FLXCore PROPERTY CXX_STANDARD 20)

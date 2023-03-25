@@ -96,5 +96,11 @@ struct FluxImage {
     int Stride;
     PixelType Type;
     void* Pixels;
+    int ChannelsCount;
+};
+
+
+struct ProcessSettings {
+    float expCompensation = 0.0f;
 };
 

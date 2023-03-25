@@ -141,7 +141,6 @@ bool RawImageDecoder::ReadMakerMetadata(MakerMetadata& data)
 bool RawImageDecoder::Init()
 {
 	s_OpenRawMutex.lock();
-	std::cout << "Lock" << std::endl;
 	processor = new LibRaw();
 	int errorCode = processor->open_file(m_fileName.c_str());
 	s_OpenRawMutex.unlock();
@@ -178,11 +177,8 @@ bool RawImageDecoder::Init()
 	processor->imgdata.params.user_qual = 12;
 	processor->imgdata.params.no_auto_bright = true;
 
-	
-
 	//Find Mid-sized preview
 	int thumbCount = processor->imgdata.thumbs_list.thumbcount;
-	//std::cout << thumbCount << std::endl;
 
 	if (thumbCount == 0) {
 		m_HasThumbnail = false;
@@ -244,21 +240,14 @@ bool RawImageDecoder::GetPreviewImage(uint8_t* buf)
 {
 	//If we has errors we exit with false(fail) flag
 	if (HasErrors()) {
-		
 		return !HasErrors();
 	}
 
 	if (!m_HasThumbnail) {
-		std::cout << "Failed" << std::endl;
 		return false;
 	}
 
-	//s_UnpackThumbMutex.lock();
-
 	int err = processor->unpack_thumb_ex(m_ThumbnailIndex);
-
-
-	//s_UnpackThumbMutex.unlock();
 
 	if (err != LIBRAW_SUCCESS)
 	{
@@ -313,9 +302,7 @@ bool RawImageDecoder::GetFullImage(float* buff)
 {
 	int success = 0;
 
-	//s_UnpackRawMutex.lock();
 	success = processor->unpack();
-	//s_UnpackRawMutex.unlock();
 
 	if (success != 0)
 	{

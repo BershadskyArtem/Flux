@@ -36,7 +36,7 @@ void MemoryUtils::CopyFromUint16ToFloat(uint16_t* buf, float* out, int channels,
 //#pragma omp parallel for
         for (int i = 0; i < uintSize; ++i) {
             float d = buf[i] / 65536.f;
-            out[i] = std::clamp(d, 0.f, 1.f);
+            out[i] = std::clamp(d, 0.00001f, 1.f);
         }
     }
     else {

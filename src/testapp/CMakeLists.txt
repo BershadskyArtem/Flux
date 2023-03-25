@@ -36,6 +36,10 @@ add_executable (FluxTest
     "../engine/io/Encoders/JpegImageEncoder.h" 
     "../engine/io/RawImageDecoder.h" 
     "../engine/io/RawImageDecoder.cpp" 
+    "../engine/Color/ColorLUTConverter.h" 
+    "../engine/Color/ColorLUTConverter.cpp" 
+    "../engine/Core/FluxImageProcessor.cpp" 
+    "../engine/Core/FluxImageProcessor.h" 
 )
 
 if ( MSVC )

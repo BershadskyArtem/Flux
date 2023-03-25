@@ -8,4 +8,5 @@
 #include "turbojpeg.h"
 #include "libraw/libraw.h"
 #include "xsimd/xsimd.hpp"
+#include "../engine/Core/FluxWaveletDenoising.h"
 // TODO: Reference additional headers your program requires here.
