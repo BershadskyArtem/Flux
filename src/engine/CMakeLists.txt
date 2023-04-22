@@ -53,7 +53,14 @@ add_library(FLXCore SHARED
     "Core/FluxImageProcessor.h" 
     "Core/FluxImageProcessor.cpp" 
     "Core/FluxWaveletDenoising.h" 
-    "Core/FluxWaveletDenoising.cpp")
+    "Core/FluxWaveletDenoising.cpp" 
+    "Core/WaveletImage.h" 
+    "Core/WaveletImage.cpp" 
+    "Core/Wavelets/Daubechies4.h" 
+    "Core/Wavelets/Daubechies4.cpp"
+    "infrastructure/Matrix.h"
+    "infrastructure/Matrix.cpp"
+)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET FLXCore PROPERTY CXX_STANDARD 20)

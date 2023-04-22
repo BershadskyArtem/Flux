@@ -3,6 +3,7 @@
 #include <cmath>
 #include <string>
 #include <fstream>
+#include <vector>
 #include "FLXDefines.h"
 
 
@@ -18,5 +19,6 @@ public:
     static void CopyFromUint16ToFloat(uint16_t* buf, float* out, int channels, int numberOfItems, bool normalize = true);
     static void CopyFromFloatToUint8(float* buf, uint8_t* out, int channels, int numberOfItems, bool normalize = true);
     static bool SaveBinaryToDisk(byte_t* data, unsigned long size, std::string fileName);
+    static void TransposeMatrix(std::vector<pixel_t*> matrix, int width ,int height);
     
 };

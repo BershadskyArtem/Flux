@@ -45,8 +45,6 @@ void MemoryUtils::CopyFromUint16ToFloat(uint16_t* buf, float* out, int channels,
             out[i] = static_cast<float>(buf[i]);
         }
     }
-
-
 }
 
 void MemoryUtils::CopyFromFloatToUint8(float* buf, uint8_t* out, int channels, int numberOfItems, bool normalize)
@@ -76,4 +74,12 @@ bool MemoryUtils::SaveBinaryToDisk(byte_t* data, unsigned long size, std::string
     outputStream.write((char*)data, size);
     outputStream.close();
     return true;
+}
+
+void MemoryUtils::TransposeMatrix(std::vector<pixel_t*> matrix, int width, int height)
+{
+
+
+
+
 }

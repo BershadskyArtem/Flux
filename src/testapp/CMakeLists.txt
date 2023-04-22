@@ -40,6 +40,14 @@ add_executable (FluxTest
     "../engine/Color/ColorLUTConverter.cpp" 
     "../engine/Core/FluxImageProcessor.cpp" 
     "../engine/Core/FluxImageProcessor.h" 
+    "../engine/Core/FluxWaveletDenoising.h" 
+    "../engine/Core/FluxWaveletDenoising.cpp" 
+    "../engine/Core/WaveletImage.h" 
+    "../engine/Core/WaveletImage.cpp" 
+    "../engine/Core/Wavelets/Daubechies4.h" 
+    "../engine/Core/Wavelets/Daubechies4.cpp"
+      "../engine/infrastructure/Matrix.h"
+    "../engine/infrastructure/Matrix.cpp"
 )
 
 if ( MSVC )
