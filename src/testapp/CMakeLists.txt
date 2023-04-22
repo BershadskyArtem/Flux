@@ -46,7 +46,7 @@ add_executable (FluxTest
     "../engine/Core/WaveletImage.cpp" 
     "../engine/Core/Wavelets/Daubechies4.h" 
     "../engine/Core/Wavelets/Daubechies4.cpp"
-      "../engine/infrastructure/Matrix.h"
+    "../engine/infrastructure/Matrix.h"
     "../engine/infrastructure/Matrix.cpp"
 )
 

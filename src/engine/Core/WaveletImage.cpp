@@ -10,3 +10,11 @@ WaveletData::~WaveletData()
 {
 	Dispose();
 }
+
+template<typename T>
+WaveletImage<T>::WaveletImage()
+{
+
+}
+
+template struct WaveletImage<pixel_t>;

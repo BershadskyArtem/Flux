@@ -1,5 +1,6 @@
 #pragma once
 #include "../infrastructure/FLXDefines.h"
+#include "../infrastructure/Matrix.h"
 
 
 struct WaveletLine {
@@ -47,21 +48,21 @@ public:
     ~WaveletData();
 };
 
+template <typename T>
 struct WaveletImage {
-    pixel_t* LL;
-    pixel_t* HL;
-    pixel_t* LH;
-    pixel_t* HH;
+    Matrix<T>* CH;
+    Matrix<T>* CD;
+    Matrix<T>* CA;
+    Matrix<T>* CV;
+    WaveletImage();
     int Width;
     int Height;
     inline void Dispose() {
-        if (LL != nullptr)
-            delete[] LL;
-        if (HL != nullptr)
-            delete[] HL;
-        if (LH != nullptr)
-            delete[] LH;
-        if (HH != nullptr)
-            delete[] HH;
+        CH->Dispose();
+        CD->Dispose();
+        CA->Dispose();
+        CV->Dispose();
     }
 };
+
+

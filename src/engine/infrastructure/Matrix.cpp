@@ -30,7 +30,7 @@ T* Matrix<T>::GetPointer(int start)
 template<typename T>
 T* Matrix<T>::GetPointer(int idx, int idy)
 {
-	return GetPointer(idy * Height() + idx);
+	return GetPointer(idy * Width() + idx);
 }
 
 template<typename T>
@@ -40,7 +40,7 @@ std::vector<T> Matrix<T>::GetRow(int idy)
 	result.reserve(Width());
 	for (int x = 0; x < Width(); x++)
 	{
-		int value = this->at(x, idy);
+		T value = this->at(x, idy);
 		result.push_back(value);
 	}
 	return result;
@@ -54,7 +54,7 @@ std::vector<T> Matrix<T>::GetColumn(int idx)
 	result.reserve(Height());
 	for (int x = 0; x < Height(); x++)
 	{
-		int value = this->at(idx, x);
+		T value = this->at(idx, x);
 		result.push_back(value);
 	}
 	return result;
@@ -75,7 +75,7 @@ void Matrix<T>::SetColumn(int idx, T* buff)
 {
 	for (int y = 0; y < Height(); y++)
 	{
-		int index = y * Height() + idx;
+		int index = y * Width() + idx;
 		m_Values[index] = buff[y];
 	}
 }

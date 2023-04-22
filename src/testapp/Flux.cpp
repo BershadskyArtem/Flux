@@ -15,53 +15,67 @@ int main()
 
 	Matrix<pixel_t> pixels = Matrix<pixel_t>(8,8, input);
 
-	for (size_t x = 0; x < 8; x++)
-	{
-		for (int y = 0; y < 8; y++)
-		{
-			std::cout << pixels.at(y,x) << '\t';
-		}
-		std::cout << '\n';
-	}
-
-
-	for (int i = 0; i < 8; i++)
-	{
-		auto vc = pixels.GetRow(i);
-
-		for (int x = 0; x < 8; x++)
-		{
-			std::cout << vc[x] << '\t';	
-		}
-			std::cout << '\n';
-	}
-
-	for (int i = 0; i < 8; i++)
-	{
-		auto vc = pixels.GetColumn(i);
-
-		for (int x = 0; x < 8; x++)
-		{
-			std::cout << vc[x] << '\t';
-			
-		}
-		std::cout << '\n';
-	}
-
-
 	auto wavedec = wv.Dwt2d(pixels);
-	
+	std::cout << "CH coefs" << '\n';
 	for (int i = 0; i < wavedec.Height; i++)
 	{
 		for (int x = 0; x < wavedec.Width; x++)
 		{
-			std::cout << wavedec.HH[i * wavedec.Height + x] << '\t';
+			std::cout << wavedec.CH->at(i * wavedec.Height + x) << '\t';
+		}
+
+		std::cout << '\n';
+	}
+
+	std::cout << "CA coefs" << '\n';
+	for (int i = 0; i < wavedec.Height; i++)
+	{
+		for (int x = 0; x < wavedec.Width; x++)
+		{
+			std::cout << wavedec.CA->at(i * wavedec.Height + x) << '\t';
+		}
+
+		std::cout << '\n';
+	}
+
+	std::cout << "CV coefs" << '\n';
+	for (int i = 0; i < wavedec.Height; i++)
+	{
+		for (int x = 0; x < wavedec.Width; x++)
+		{
+			std::cout << wavedec.CV->at(i * wavedec.Height + x) << '\t';
+		}
+
+		std::cout << '\n';
+	}
+
+	std::cout << "CD coefs" << '\n';
+	for (int i = 0; i < wavedec.Height; i++)
+	{
+		for (int x = 0; x < wavedec.Width; x++)
+		{
+			std::cout << wavedec.CD->at(i * wavedec.Height + x) << '\t';
 		}
 
 		std::cout << '\n';
 	}
 
 
-	
+
+
+	auto mat = wv.Idwt2d(wavedec);
+
+	std::cout << "Restored" << '\n';
+
+	for (int i = 0; i < mat.Height(); i++)
+	{
+		for (int j = 0; j < mat.Width(); j++)
+		{
+			std::cout << mat.at(i,j) << '\t';
+		}
+		std::cout << '\n';
+	}
+
+
 	return 0;
 }

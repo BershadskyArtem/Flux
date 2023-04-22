@@ -38,11 +38,12 @@ public:
 
 	WaveletLine Dwt(pixel_t* input, int length);
 
-	void DwtHorizontal(Matrix<pixel_t> input, Matrix<pixel_t> &hi, Matrix<pixel_t> &lo);
 
-	WaveletImage Dwt2d(Matrix<pixel_t> &input);
+	WaveletImage<pixel_t> Dwt2d(Matrix<pixel_t> &input);
 
-	void Idwt(WaveletLine& line, pixel_t* buffer, int startIdx = 0);	
+	Matrix<pixel_t> Idwt2d(WaveletImage<pixel_t>& inputImage);
+
+	pixel_t* Idwt(WaveletLine& line);	
 
 	~FluxWaveletDenoising();
 
