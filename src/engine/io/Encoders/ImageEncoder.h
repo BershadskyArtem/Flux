@@ -3,7 +3,7 @@
 #include <string>
 #include "../../infrastructure/InteropTypes.h"
 #include "../../infrastructure/FLXDefines.h"
-
+#include "../../infrastructure/Matrix.h"
 
 class AbstractImageEncoder {
 protected:
@@ -17,6 +17,8 @@ protected:
 public:
     AbstractImageEncoder(pixel_t* pixels, int width, int height, int colorComponents);
     AbstractImageEncoder(byte_t* pixels, int width, int height, int colorComponents);
+    AbstractImageEncoder(Matrix<pixel_t> &mat);
+
     virtual bool Init() = 0;
     virtual bool FastSave(std::string filePath) = 0;
     virtual bool HasErrors();

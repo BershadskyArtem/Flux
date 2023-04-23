@@ -8,7 +8,7 @@ WaveletLine::WaveletLine(pixel_t* hi, pixel_t* lo, int length) {
 
 WaveletData::~WaveletData()
 {
-	Dispose();
+	//Dispose();
 }
 
 template<typename T>

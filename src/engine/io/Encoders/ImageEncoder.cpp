@@ -28,6 +28,15 @@ AbstractImageEncoder::AbstractImageEncoder(byte_t* pixels, int width, int height
 
 }
 
+AbstractImageEncoder::AbstractImageEncoder(Matrix<pixel_t> &mat)
+{
+	m_Width = mat.Width();
+	m_Height = mat.Height();
+	m_pixels = mat.GetPointer();
+	m_PixelType = PixelType::Float;
+	m_ColorComponents = 1;
+}
+
 bool AbstractImageEncoder::HasErrors()
 {
 	return m_HasErrors;

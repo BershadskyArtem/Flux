@@ -8,6 +8,10 @@ JpegImageEncoder::JpegImageEncoder(byte_t* pixels, int width, int height, int co
 {
 }
 
+JpegImageEncoder::JpegImageEncoder(Matrix<pixel_t>& mat): AbstractImageEncoder(mat)
+{
+}
+
 bool JpegImageEncoder::Init()
 {
 	m_JpegCompressor = tjInitCompress();
@@ -19,7 +23,7 @@ bool JpegImageEncoder::Init()
 
 bool JpegImageEncoder::FastSave(std::string filePath)
 {
-	int jpegQuality = 80;
+	int jpegQuality = 95;
 	
 	int pixel_type = 0;
 	int sampling = 0;

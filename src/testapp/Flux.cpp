@@ -1,62 +1,48 @@
 ﻿#include "Flux.h"
+#include "../engine/io/ImageInput.h"
+#include "../engine/io/Encoders/JpegImageEncoder.h"
+#include "../engine/infrastructure/BenchmarkHelper.h"
+#include "../engine/Core/FluxImageProcessor.h"
 
 using namespace std;
 
 int main()
 {
-	int inputSize = 64;
-	pixel_t* input = new pixel_t[]
-	{
-		1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64
-	};
-	Daubechies4* wvData = new Daubechies4();
+	std::string fileInput = "C:\\Users\\Artyom\\Downloads\\rectimage.jpg";
+	std::string fileOutput = "C:\\Users\\Artyom\\Downloads\\waveleted.jpg";
 
-	FluxWaveletDenoising wv = FluxWaveletDenoising(wvData);
+	ImageInput input = ImageInput(fileInput);
+	input.Init();
+	FluxImage* image = input.DecodeImage();
 
-	std::cout << std::setfill('0') << std::setw(5);
-	std::cout << std::setprecision(5); //<< std::fixed;
-
-	pixel_t* inputs = new pixel_t[]{
-		0.0117,
-		0.19,
-		0.368,
-		0.547,
-		0.725,
-		0.903,
-		1.08,
-		1.26
-	};
-
-	//auto mmn = wv.Dwt(inputs, 8);
-	//std::cout << "CH coefs" << '\n';
-	//for (int i = 0; i < mmn.Length; i++)
-	//{
-	//	std::cout << mmn.Hi[i] << '\t';
-	//	//std::cout << '\n';
-	//}
-	//std::cout << '\n';
-
-
-	Matrix<pixel_t> pixels = Matrix<pixel_t>(8, 8, input);
-	pixels.Print();
-
-	auto wavedec = wv.Dwt2d(pixels);
+	FluxImageProcessor processor = FluxImageProcessor();
 	
-	//std::cout << "CA" << '\n';
-	//wavedec.CA->Print();
-	//std::cout << "CD" << '\n';
-	//wavedec.CD->Print();
-	//std::cout << "CH" << '\n';
-	//wavedec.CH->Print();
-	//std::cout << "CV" << '\n';
-	//wavedec.CV->Print();
+	auto processed = processor.Process(image, nullptr);
+	ImageInput::FreeFluxImage(image);
 
+	Matrix<pixel_t> mat = Matrix<pixel_t>(processed->Width, processed->Height, (pixel_t*)(processed->Pixels));
 
-	auto mat = wv.Idwt2d(wavedec);
-	std::cout << '\n';
-	std::cout << "Restored" << '\n';
-	mat.Print();
+	Daubechies4* db4 = new Daubechies4();
+
+	FluxWaveletDenoising denoiser = FluxWaveletDenoising(db4);
+
+	auto timestamp = BenchmarkHelper::StartWatch();
+	WaveletImage<pixel_t> waveletImage = denoiser.Dwt2d(mat);
+	BenchmarkHelper::ShowDurationFinal(timestamp, "Forward 2d dwt");
 	
+	auto timestamp2 = BenchmarkHelper::StartWatch();
+	Matrix<pixel_t> waveletedMatrix = denoiser.Idwt2d(waveletImage);
+	waveletImage.Dispose();
+	BenchmarkHelper::ShowDurationFinal(timestamp2, "Inverse 2d dwt");
 
+	ImageInput::FreeFluxImage(processed);
+
+	JpegImageEncoder encoder = JpegImageEncoder(waveletedMatrix);
+	encoder.Init();
+	encoder.FastSave(fileOutput);
+	
+	waveletedMatrix.Dispose();
+	db4->Dispose();
+	delete db4;
 	return 0;
 }

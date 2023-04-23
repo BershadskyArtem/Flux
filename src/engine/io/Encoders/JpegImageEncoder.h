@@ -10,6 +10,7 @@ protected:
 public:
 	JpegImageEncoder(pixel_t* pixels, int width, int height, int colorComponents = 3);
 	JpegImageEncoder(byte_t* pixels, int width, int height, int colorComponents = 3);
+	JpegImageEncoder(Matrix<pixel_t> &mat);
 	bool Init() override;
 	bool FastSave(std::string filePath) override;
 	~JpegImageEncoder();
