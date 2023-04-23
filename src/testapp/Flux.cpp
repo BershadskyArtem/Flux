@@ -13,69 +13,50 @@ int main()
 
 	FluxWaveletDenoising wv = FluxWaveletDenoising(wvData);
 
-	Matrix<pixel_t> pixels = Matrix<pixel_t>(8,8, input);
+	std::cout << std::setfill('0') << std::setw(5);
+	std::cout << std::setprecision(5); //<< std::fixed;
+
+	pixel_t* inputs = new pixel_t[]{
+		0.0117,
+		0.19,
+		0.368,
+		0.547,
+		0.725,
+		0.903,
+		1.08,
+		1.26
+	};
+
+	//auto mmn = wv.Dwt(inputs, 8);
+	//std::cout << "CH coefs" << '\n';
+	//for (int i = 0; i < mmn.Length; i++)
+	//{
+	//	std::cout << mmn.Hi[i] << '\t';
+	//	//std::cout << '\n';
+	//}
+	//std::cout << '\n';
+
+
+	Matrix<pixel_t> pixels = Matrix<pixel_t>(8, 8, input);
+	pixels.Print();
 
 	auto wavedec = wv.Dwt2d(pixels);
-	std::cout << "CH coefs" << '\n';
-	for (int i = 0; i < wavedec.Height; i++)
-	{
-		for (int x = 0; x < wavedec.Width; x++)
-		{
-			std::cout << wavedec.CH->at(i * wavedec.Height + x) << '\t';
-		}
-
-		std::cout << '\n';
-	}
-
-	std::cout << "CA coefs" << '\n';
-	for (int i = 0; i < wavedec.Height; i++)
-	{
-		for (int x = 0; x < wavedec.Width; x++)
-		{
-			std::cout << wavedec.CA->at(i * wavedec.Height + x) << '\t';
-		}
-
-		std::cout << '\n';
-	}
-
-	std::cout << "CV coefs" << '\n';
-	for (int i = 0; i < wavedec.Height; i++)
-	{
-		for (int x = 0; x < wavedec.Width; x++)
-		{
-			std::cout << wavedec.CV->at(i * wavedec.Height + x) << '\t';
-		}
-
-		std::cout << '\n';
-	}
-
-	std::cout << "CD coefs" << '\n';
-	for (int i = 0; i < wavedec.Height; i++)
-	{
-		for (int x = 0; x < wavedec.Width; x++)
-		{
-			std::cout << wavedec.CD->at(i * wavedec.Height + x) << '\t';
-		}
-
-		std::cout << '\n';
-	}
-
-
+	
+	//std::cout << "CA" << '\n';
+	//wavedec.CA->Print();
+	//std::cout << "CD" << '\n';
+	//wavedec.CD->Print();
+	//std::cout << "CH" << '\n';
+	//wavedec.CH->Print();
+	//std::cout << "CV" << '\n';
+	//wavedec.CV->Print();
 
 
 	auto mat = wv.Idwt2d(wavedec);
-
+	std::cout << '\n';
 	std::cout << "Restored" << '\n';
-
-	for (int i = 0; i < mat.Height(); i++)
-	{
-		for (int j = 0; j < mat.Width(); j++)
-		{
-			std::cout << mat.at(i,j) << '\t';
-		}
-		std::cout << '\n';
-	}
-
+	mat.Print();
+	
 
 	return 0;
 }

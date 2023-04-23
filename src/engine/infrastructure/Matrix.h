@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <iostream>
 #include "MemoryUtils.h"
 template <typename T>
 class Matrix {
@@ -17,6 +18,7 @@ public:
 	std::vector<T> GetColumn(int idx);
 	void SetRow(int idy, T* buff);
 	void SetColumn(int idx, T* buff);
+	void Print();
 	void Dispose();
 	int Width();
 	int Height();

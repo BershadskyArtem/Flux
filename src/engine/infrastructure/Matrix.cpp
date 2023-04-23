@@ -81,6 +81,27 @@ void Matrix<T>::SetColumn(int idx, T* buff)
 }
 
 template<typename T>
+void Matrix<T>::Print()
+{
+	if (m_Values == nullptr) {
+		std::cout << "Disposed" << '\n';
+		return;
+	}
+
+
+	for (int i = 0; i < Height(); i++)
+	{
+		for (int j = 0; j < Width(); j++)
+		{
+			std::cout << at(j, i) << '\t';
+		}
+		std::cout << '\n';
+	}
+	std::cout << '\n';
+	std::cout << '\n';
+}
+
+template<typename T>
 void Matrix<T>::Dispose()
 {
 	if (m_Values != nullptr) {

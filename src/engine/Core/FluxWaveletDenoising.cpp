@@ -52,6 +52,8 @@ WaveletLine FluxWaveletDenoising::Dwt(pixel_t* input, int length)
 		int maxInverseWaveletIndex = _waveletData->Size - (inputIdx - (length - 1));
 		for (int j = 0; j < maxInverseWaveletIndex; j++)
 		{
+			int idxm = inputIdx - _waveletData->Size + j + 1;
+			int idxms = _waveletData->Size - 1 - j;
 			hi[currentHiLoIdx] += input[inputIdx - _waveletData->Size + j + 1] * _waveletData->HighPassDeconstruction[_waveletData->Size - 1 - j];
 			lo[currentHiLoIdx] += input[inputIdx - _waveletData->Size + j + 1] * _waveletData->LowPassDeconstruction[_waveletData->Size - 1 - j];
 		}
@@ -60,8 +62,6 @@ WaveletLine FluxWaveletDenoising::Dwt(pixel_t* input, int length)
 	return WaveletLine(hi, lo, resultLength);
 }
 
-
-
 WaveletImage<pixel_t> FluxWaveletDenoising::Dwt2d(Matrix<pixel_t>& input)
 {
 	int coeffsWidth = this->GetDwtLength(input.Width(), _waveletData->Size);
@@ -69,49 +69,53 @@ WaveletImage<pixel_t> FluxWaveletDenoising::Dwt2d(Matrix<pixel_t>& input)
 	Matrix<pixel_t> lowHorizontal = Matrix<pixel_t>(coeffsWidth, input.Height());
 	Matrix<pixel_t> hiHorizontal = Matrix<pixel_t>(coeffsWidth, input.Height());
 
-	Matrix<pixel_t>* ll = new Matrix<pixel_t>(coeffsWidth, coeffsHeight);
-	Matrix<pixel_t>* hl = new Matrix<pixel_t>(coeffsWidth, coeffsHeight);
-	Matrix<pixel_t>* lh = new Matrix<pixel_t>(coeffsWidth, coeffsHeight);
-	Matrix<pixel_t>* hh = new Matrix<pixel_t>(coeffsWidth, coeffsHeight);
+	Matrix<pixel_t>* ca = new Matrix<pixel_t>(coeffsWidth, coeffsHeight);
+	Matrix<pixel_t>* ch = new Matrix<pixel_t>(coeffsWidth, coeffsHeight);
+	Matrix<pixel_t>* cv = new Matrix<pixel_t>(coeffsWidth, coeffsHeight);
+	Matrix<pixel_t>* cd = new Matrix<pixel_t>(coeffsWidth, coeffsHeight);
 
-//#pragma omp parallel for 
-	for (int y = 0; y < input.Height(); y++)
+	//Horizontal
+	for (int i = 0; i < input.Height(); i++)
 	{
-		std::vector<pixel_t> row = input.GetRow(y);
-		WaveletLine filteredRow = this->Dwt(&row[0], input.Width());
+		auto row = input.GetRow(i);
+		auto dwt = Dwt(row.data(), row.size());
+		lowHorizontal.SetRow(i, dwt.Lo);
+		hiHorizontal.SetRow(i, dwt.Hi);
 		row.clear();
-		lowHorizontal.SetRow(y, filteredRow.Lo);
-		hiHorizontal.SetRow(y, filteredRow.Hi);
 	}
 
-//Dwt on columns
-//#pragma omp parallel for 
-	for (int x = 0; x < input.Width(); x++)
+	std::cout << "Dwt H1\n";
+	hiHorizontal.Print();
+	std::cout << "Dwt L1\n";
+	lowHorizontal.Print();
+
+
+	//Vertical
+	for (int i = 0; i < lowHorizontal.Width(); i++)
 	{
-		std::vector<pixel_t> columnLow = lowHorizontal.GetColumn(x);
-		WaveletLine filteredColumnLow = this->Dwt(&columnLow[0], input.Height());
+		auto columnLow = lowHorizontal.GetColumn(i);
+		auto dwtLow = Dwt(columnLow.data(), columnLow.size());
 		columnLow.clear();
-	
-		std::vector<pixel_t> columnHi = hiHorizontal.GetColumn(x);
-		WaveletLine filteredColumnHi = this->Dwt(&columnHi[0], input.Height());
-		columnHi.clear();
+		ca->SetColumn(i, dwtLow.Lo);
+		ch->SetColumn(i, dwtLow.Hi);
+		dwtLow.Dispose();
 
-		ll->SetColumn(x, filteredColumnHi.Lo);
-		hl->SetColumn(x, filteredColumnHi.Hi);
-		lh->SetColumn(x, filteredColumnLow.Lo);
-		hh->SetColumn(x, filteredColumnLow.Hi);
+
+		auto columnHi = hiHorizontal.GetColumn(i);
+		auto dwtHi = Dwt(columnHi.data(), columnHi.size());
+		columnHi.clear();
+		cd->SetColumn(i, dwtHi.Hi);
+		cv->SetColumn(i, dwtHi.Lo);
+		dwtHi.Dispose();
 	}
-	
-	lowHorizontal.Dispose();
-	hiHorizontal.Dispose();
 
 	WaveletImage<pixel_t> result = WaveletImage<pixel_t>();
 	result.Width = coeffsWidth;
 	result.Height = coeffsHeight;
-	result.CV = hh;
-	result.CH = ll;
-	result.CA = lh;
-	result.CD = hl;
+	result.CV = cv;
+	result.CH = ch;
+	result.CA = ca;
+	result.CD = cd;
 	return result;
 }
 
@@ -119,45 +123,58 @@ WaveletImage<pixel_t> FluxWaveletDenoising::Dwt2d(Matrix<pixel_t>& input)
 Matrix<pixel_t> FluxWaveletDenoising::Idwt2d(WaveletImage<pixel_t> &inputImage)
 {
 	// https://medium.com/@koushikc2000/2d-discrete-wavelet-transformation-and-its-applications-in-digital-image-processing-using-matlab-1f5c68672de3
+	// https://pywavelets.readthedocs.io/en/latest/ref/2d-dwt-and-idwt.html
 
 	int initialWidth = GetIdwtLength(inputImage.Width, _waveletData->Size);
 	int initialHeight = GetIdwtLength(inputImage.Height, _waveletData->Size);
+
 	Matrix<pixel_t> restoredH1 = Matrix<pixel_t>(inputImage.Width, initialHeight);
 	Matrix<pixel_t> restoredL1 = Matrix<pixel_t>(inputImage.Width, initialHeight);
 
+	//Vertical filtering
 	for (int i = 0; i < inputImage.Width; i++)
 	{
-		std::vector<pixel_t> lowColumn = inputImage.CH->GetColumn(i);
-		std::vector<pixel_t> hiColumn = inputImage.CD->GetColumn(i);
-		WaveletLine line = WaveletLine(&hiColumn[0], &lowColumn[0], lowColumn.size());
-		pixel_t* restoredH1Column = Idwt(line);
-		restoredH1.SetColumn(i, restoredH1Column);
-		lowColumn.clear();
-		hiColumn.clear();
+		std::vector<pixel_t> columnLow1 = inputImage.CV->GetColumn(i);
+		std::vector<pixel_t> columnHi1 = inputImage.CD->GetColumn(i);
+		WaveletLine line1 = WaveletLine(columnHi1.data(), columnLow1.data(), columnHi1.size());
+		pixel_t* restoredHi = Idwt(line1);
+		restoredH1.SetColumn(i, restoredHi);
+		columnHi1.clear();
+		columnLow1.clear();
+		delete[] restoredHi;
 
-
-		std::vector<pixel_t> lowColumn2 = inputImage.CA->GetColumn(i);
-		std::vector<pixel_t> hiColumn2 = inputImage.CV->GetColumn(i);
-		WaveletLine line2 = WaveletLine(&hiColumn2[0], &lowColumn2[0], lowColumn2.size());
-		pixel_t* restoredL1Column = Idwt(line2);
-		restoredL1.SetColumn(i, restoredL1Column);
-		lowColumn2.clear();
-		hiColumn2.clear();
+		std::vector<pixel_t> columnLow2 = inputImage.CA->GetColumn(i);
+		std::vector<pixel_t> columnHi2 = inputImage.CH->GetColumn(i);
+		WaveletLine line2 = WaveletLine(columnHi2.data(), columnLow2.data(), columnHi2.size());
+		pixel_t* restoredLo = Idwt(line2);
+		restoredL1.SetColumn(i, restoredLo);
+		columnHi2.clear();
+		columnLow2.clear();
+		delete[] restoredLo;
 	}
+
+	std::cout << "H1\n";
+	restoredH1.Print();
+	std::cout << "L1\n";
+	restoredL1.Print();
 
 	Matrix<pixel_t> restoredImage = Matrix<pixel_t>(initialWidth, initialHeight);
 
-	for (int i = 0; i < inputImage.Height; i++)
+	//Horizontal filtering
+	for (int i = 0; i < restoredH1.Height(); i++)
 	{
-		std::vector lowColumn = restoredL1.GetRow(i);
-		std::vector hiColumn = restoredH1.GetRow(i);
-
-		WaveletLine line = WaveletLine(&hiColumn[0], &lowColumn[0], lowColumn.size());
-		pixel_t* restoredLine = Idwt(line);
-		restoredImage.SetRow(i, restoredLine);
-		lowColumn.clear();
-		hiColumn.clear();
+		std::vector<pixel_t> lowRow = restoredL1.GetRow(i);
+		std::vector<pixel_t> hiRow = restoredH1.GetRow(i);
+		WaveletLine line = WaveletLine(hiRow.data(), lowRow.data(), lowRow.size());
+		pixel_t* restored = Idwt(line);
+		restoredImage.SetRow(i, restored);
+		lowRow.clear();
+		hiRow.clear();
+		delete[] restored;
 	}
+	
+	restoredH1.Dispose();
+	restoredL1.Dispose();
 
 	return restoredImage;
 }
@@ -165,7 +182,7 @@ Matrix<pixel_t> FluxWaveletDenoising::Idwt2d(WaveletImage<pixel_t> &inputImage)
 pixel_t* FluxWaveletDenoising::Idwt(WaveletLine& line)
 {
 	int initialLength = GetIdwtLength(line.Length, _waveletData->Size);
-	pixel_t* result = new pixel_t[initialLength];
+	pixel_t* result = new pixel_t[initialLength]{};
 
 	int outputOffset = _waveletData->Size - 2;
 

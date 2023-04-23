@@ -4,6 +4,7 @@
 #pragma once
 #include <omp.h>
 #include <iostream>
+#include <iomanip>
 #include "turbojpeg.h"
 #include "libraw/libraw.h"
 #include "xsimd/xsimd.hpp"
