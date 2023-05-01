@@ -57,6 +57,8 @@ struct WaveletImage {
     WaveletImage();
     int Width;
     int Height;
+    int InitialWidth; 
+    int InitialHeight;
     inline void Dispose() {
         CH->Dispose();
         CD->Dispose();

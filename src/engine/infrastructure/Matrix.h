@@ -14,14 +14,14 @@ public:
 	~Matrix();
 	T* GetPointer(int start = 0);
 	T* GetPointer(int idx, int idy);
-	std::vector<T> GetRow(int idy);
-	std::vector<T> GetColumn(int idx);
+	std::vector<T> GetRow(int idy, bool evenSized = false);
+	std::vector<T> GetColumn(int idx, bool evenSized = false);
 	void SetRow(int idy, T* buff);
 	void SetColumn(int idx, T* buff);
 	void Print();
 	void Dispose();
-	int Width();
-	int Height();
+	int Width(bool forceEven = false);
+	int Height(bool forceEven = false);
 	T& at(int idx);
 	T& at(int idx, int idy);
 };

@@ -34,29 +34,49 @@ T* Matrix<T>::GetPointer(int idx, int idy)
 }
 
 template<typename T>
-std::vector<T> Matrix<T>::GetRow(int idy)
+std::vector<T> Matrix<T>::GetRow(int idy, bool evenSized)
 {
 	std::vector<T> result = std::vector<T>();
-	result.reserve(Width());
+
+	int w = Width();
+
+	if (w % 2 != 0 && evenSized)
+		w += 1;
+
+	result.reserve(w);
 	for (int x = 0; x < Width(); x++)
 	{
 		T value = this->at(x, idy);
 		result.push_back(value);
 	}
+
+	if (Width() % 2 != 0 && evenSized)
+		result.push_back(T());
+
 	return result;
 }
 
 template<typename T>
-std::vector<T> Matrix<T>::GetColumn(int idx)
+std::vector<T> Matrix<T>::GetColumn(int idx, bool evenSized)
 {
 	
 	std::vector<T> result = std::vector<T>();
-	result.reserve(Height());
+
+	int h = Height();
+
+	if (h % 2 != 0 && evenSized)
+		h += 1;
+
+	result.reserve(h);
 	for (int x = 0; x < Height(); x++)
 	{
 		T value = this->at(idx, x);
 		result.push_back(value);
 	}
+
+	if (Height() % 2 != 0 && evenSized)
+		result.push_back(T());
+
 	return result;
 }
 
@@ -111,14 +131,18 @@ void Matrix<T>::Dispose()
 }
 
 template<typename T>
-int Matrix<T>::Width()
+int Matrix<T>::Width(bool forceEven)
 {
+	if (forceEven && m_Width % 2 != 0)
+		return m_Width + 1;
 	return m_Width;
 }
 
 template<typename T>
-int Matrix<T>::Height()
+int Matrix<T>::Height(bool forceEven)
 {
+	if (forceEven && m_Height % 2 != 0)
+		return m_Height + 1;
 	return m_Height;
 }
 

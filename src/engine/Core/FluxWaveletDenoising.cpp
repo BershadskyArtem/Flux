@@ -64,8 +64,8 @@ WaveletLine FluxWaveletDenoising::Dwt(pixel_t* input, int length)
 
 WaveletImage<pixel_t> FluxWaveletDenoising::Dwt2d(Matrix<pixel_t>& input)
 {
-	int coeffsWidth = this->GetDwtLength(input.Width(), _waveletData->Size);
-	int coeffsHeight = this->GetDwtLength(input.Height(), _waveletData->Size);
+	int coeffsWidth = this->GetDwtLength(input.Width(true), _waveletData->Size);
+	int coeffsHeight = this->GetDwtLength(input.Height(true), _waveletData->Size);
 	Matrix<pixel_t> lowHorizontal = Matrix<pixel_t>(coeffsWidth, input.Height());
 	Matrix<pixel_t> hiHorizontal = Matrix<pixel_t>(coeffsWidth, input.Height());
 
@@ -73,7 +73,7 @@ WaveletImage<pixel_t> FluxWaveletDenoising::Dwt2d(Matrix<pixel_t>& input)
 #pragma omp parallel for
 	for (int i = 0; i < input.Height(); i++)
 	{
-		std::vector<pixel_t> row = input.GetRow(i);
+		std::vector<pixel_t> row = input.GetRow(i, true);
 		WaveletLine dwt = Dwt(row.data(), row.size());
 		lowHorizontal.SetRow(i, dwt.Lo);
 		hiHorizontal.SetRow(i, dwt.Hi);
@@ -96,14 +96,14 @@ WaveletImage<pixel_t> FluxWaveletDenoising::Dwt2d(Matrix<pixel_t>& input)
 #pragma omp parallel for
 	for (int i = 0; i < lowHorizontal.Width(); i++)
 	{
-		std::vector<pixel_t> columnLow = lowHorizontal.GetColumn(i);
+		std::vector<pixel_t> columnLow = lowHorizontal.GetColumn(i, true);
 		WaveletLine dwtLow = Dwt(columnLow.data(), columnLow.size());
 		ca->SetColumn(i, dwtLow.Lo);
 		ch->SetColumn(i, dwtLow.Hi);
 		dwtLow.Dispose();
 		columnLow.clear();
 
-		std::vector<pixel_t> columnHi = hiHorizontal.GetColumn(i);
+		std::vector<pixel_t> columnHi = hiHorizontal.GetColumn(i, true);
 		WaveletLine dwtHi = Dwt(columnHi.data(), columnHi.size());
 		cd->SetColumn(i, dwtHi.Hi);
 		cv->SetColumn(i, dwtHi.Lo);
@@ -117,6 +117,8 @@ WaveletImage<pixel_t> FluxWaveletDenoising::Dwt2d(Matrix<pixel_t>& input)
 	WaveletImage<pixel_t> result = WaveletImage<pixel_t>();
 	result.Width = coeffsWidth;
 	result.Height = coeffsHeight;
+	result.InitialWidth = input.Width();
+	result.InitialHeight = input.Height();
 	result.CV = cv;
 	result.CH = ch;
 	result.CA = ca;
@@ -164,11 +166,12 @@ Matrix<pixel_t> FluxWaveletDenoising::Idwt2d(WaveletImage<pixel_t> &inputImage)
 	//std::cout << "L1\n";
 	//restoredL1.Print();
 
-	Matrix<pixel_t> restoredImage = Matrix<pixel_t>(initialWidth, initialHeight);
+	Matrix<pixel_t> restoredImage = Matrix<pixel_t>(inputImage.InitialWidth, inputImage.InitialHeight);
 
 	//Horizontal filtering
 #pragma omp parallel for
-	for (int i = 0; i < restoredH1.Height(); i++)
+	//for (int i = 0; i < restoredH1.Height(); i++)
+	for (int i = 0; i < inputImage.InitialHeight; i++)
 	{
 		std::vector<pixel_t> lowRow = restoredL1.GetRow(i);
 		std::vector<pixel_t> hiRow = restoredH1.GetRow(i);
@@ -219,4 +222,18 @@ FluxWaveletDenoising::~FluxWaveletDenoising()
 	//	delete _waveletData;
 	//	_waveletData = nullptr;
 	//}
+}
+
+
+std::vector<WaveletImage<pixel_t>> FluxWaveletDenoising::Wavedec(Matrix<pixel_t>& input) {
+	int w = input.Width();
+	int h = input.Height();
+
+	//Handle odd
+	
+
+
+	return std::vector<WaveletImage<pixel_t>>();
+	
+
 }

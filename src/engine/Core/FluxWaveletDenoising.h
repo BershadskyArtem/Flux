@@ -3,19 +3,14 @@
 #include <vector>
 #include "../infrastructure/FLXDefines.h"
 #include "../infrastructure/InteropTypes.h"
-#include "WaveletImage.h"
 #include "../infrastructure/Matrix.h"
+#include "WaveletImage.h"
 
 
 class FluxWaveletDenoising {
 protected:
 	WaveletData* _waveletData;
 public:
-
-	//Iterators
-
-
-	
 
 	static inline int GetDwtLength(int inputLength, int passSize)
 	{
@@ -25,6 +20,15 @@ public:
 	static inline int GetIdwtLength(int hiLength, int passSize)
 	{
 		return 2 * hiLength - passSize + 2;
+	}
+
+	inline int GetMaxDepth(int x, int y) {
+		//TODO: Handle cases when input length is less than passSize (wavelet coeffs length)
+		//For now i divide data length to overcome this limitation
+		float dataLength = (float)std::min(x,y);
+		dataLength /= _waveletData->Size;
+		dataLength = std::floor(dataLength);
+		return std::log2f(dataLength / ((float)_waveletData->Size - 1));
 	}
 
 	inline void Dispose() {
@@ -38,13 +42,13 @@ public:
 
 	WaveletLine Dwt(pixel_t* input, int length);
 
-
 	WaveletImage<pixel_t> Dwt2d(Matrix<pixel_t> &input);
 
 	Matrix<pixel_t> Idwt2d(WaveletImage<pixel_t>& inputImage);
 
 	pixel_t* Idwt(WaveletLine& line);	
 
-	~FluxWaveletDenoising();
+	std::vector<WaveletImage<pixel_t>> Wavedec(Matrix<pixel_t> &input);
 
+	~FluxWaveletDenoising();
 };
