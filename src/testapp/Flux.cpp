@@ -8,7 +8,7 @@ using namespace std;
 
 int main()
 {
-	std::string fileInput = "C:\\Users\\Artyom\\Downloads\\rectimage.jpg";
+	std::string fileInput = "C:\\Users\\Artyom\\Downloads\\rectimage1023-1023.jpg";
 	std::string fileOutput = "C:\\Users\\Artyom\\Downloads\\waveleted.jpg";
 
 	ImageInput input = ImageInput(fileInput);
@@ -35,13 +35,13 @@ int main()
 
 	std::vector<pixel_t> thresholds = std::vector<pixel_t>();
 
-	pixel_t mul = 0.5f;
+	pixel_t mul = 0.4f;
 
 	thresholds.push_back(mul * 50.0f  / 100.f);
 	thresholds.push_back(mul * 75.0f  / 100.f);
 	thresholds.push_back(mul * 50.0f  / 100.f);
-	thresholds.push_back(mul * 100.0f  / 100.f);
-	thresholds.push_back(mul * 100.0f  / 100.f);
+	thresholds.push_back(mul * 75.0f  / 100.f);
+	thresholds.push_back(mul * 75.0f  / 100.f);
 	thresholds.push_back(mul * 25.0f  / 100.f);
 	thresholds.push_back(mul * 0.0f  / 100.f);
 	//thresholds.push_back(0.0f  / 100.f);

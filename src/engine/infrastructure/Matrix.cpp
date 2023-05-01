@@ -61,7 +61,7 @@ std::vector<T> Matrix<T>::GetRow(int idy, bool evenSized)
 	}
 
 	if (Width() % 2 != 0 && evenSized)
-		result.push_back(T());
+		result.push_back(0.5f);
 
 	return result;
 }
@@ -85,7 +85,7 @@ std::vector<T> Matrix<T>::GetColumn(int idx, bool evenSized)
 	}
 
 	if (Height() % 2 != 0 && evenSized)
-		result.push_back(T());
+		result.push_back(0.5f);
 
 	return result;
 }

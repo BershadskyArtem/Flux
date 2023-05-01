@@ -288,12 +288,10 @@ std::vector<WaveletImage<pixel_t>> FluxWaveletDenoising::ApplyDenoising(std::vec
 
 	for (int i = 0; i < input.size() && i < thresholdValues.size(); ++i)
 	{
-
 		WaveletImage<pixel_t> currentImage = input[i];
 		WaveletImage<pixel_t> coppiedImage = currentImage.Copy();
 
 		pixel_t threshold = thresholdValues[i];
-
 
 		if (threshold != 0.0f) {
 			ApplyThreshold(*coppiedImage.CA, threshold);
@@ -341,7 +339,7 @@ void FluxWaveletDenoising::ApplyThreshold(Matrix<pixel_t>& mat, pixel_t& thresho
 			
 		}
 
-		for (int x = w - inc; x < w; x++)
+		for (int x = w; x < w; x++)
 		{
 			int index = currentLine + x;
 			pixel_t values = currentPixels[index];
