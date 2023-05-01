@@ -1,6 +1,8 @@
 #pragma once
 #include <array>
 #include <vector>
+#include <algorithm>
+#include <xsimd/xsimd.hpp>
 #include "../infrastructure/FLXDefines.h"
 #include "../infrastructure/InteropTypes.h"
 #include "../infrastructure/Matrix.h"
@@ -10,6 +12,18 @@
 class FluxWaveletDenoising {
 protected:
 	WaveletData* _waveletData;
+	vfloat _zeroV;
+	vfloat _oneV;
+	vfloat _maxV;
+	vfloat _minV;
+	pixel_t _zero;
+	pixel_t _one;
+	pixel_t _max;
+	pixel_t _min;
+
+
+	void ApplyThreshold(Matrix<pixel_t> &mat, pixel_t &threshold);
+
 public:
 
 	static inline int GetDwtLength(int inputLength, int passSize)
@@ -49,6 +63,10 @@ public:
 	pixel_t* Idwt(WaveletLine& line);	
 
 	std::vector<WaveletImage<pixel_t>> Wavedec(Matrix<pixel_t> &input);
+
+	Matrix<pixel_t> Waveinv(std::vector<WaveletImage<pixel_t>> &input);
+
+	std::vector<WaveletImage<pixel_t>> ApplyDenoising(std::vector<WaveletImage<pixel_t>> &input, std::vector<pixel_t> &thresholdValues);
 
 	~FluxWaveletDenoising();
 };

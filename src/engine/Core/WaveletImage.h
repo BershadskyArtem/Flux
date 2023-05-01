@@ -59,6 +59,19 @@ struct WaveletImage {
     int Height;
     int InitialWidth; 
     int InitialHeight;
+    inline WaveletImage Copy() {
+        WaveletImage<T> result = WaveletImage<T>();
+        result.CA = CA->Copy();
+        result.CD = CD->Copy();
+        result.CH = CH->Copy();
+        result.CV = CV->Copy();
+        result.Width = Width;
+        result.Height = Height;
+        result.InitialHeight = InitialHeight;
+        result.InitialWidth = InitialWidth;
+        return result;
+    }
+
     inline void Dispose() {
         CH->Dispose();
         CD->Dispose();

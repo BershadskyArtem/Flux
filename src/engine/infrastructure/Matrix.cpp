@@ -15,6 +15,16 @@ Matrix<T>::Matrix(int width, int height, T* value)
 	this->m_Values = value;
 }
 
+
+template<typename T>
+Matrix<T>* Matrix<T>::Copy()
+{
+	T* values = new T[this->Width() * this->Height()];
+	MemoryUtils::Copy((char*)m_Values, (char*)values, sizeof(T), this->Width() * this->Height());
+	Matrix<T>* result = new Matrix<T>(this->Width(), this->Height(), values);
+	return result;
+}
+
 template<typename T>
 Matrix<T>::~Matrix()
 {
@@ -145,6 +155,8 @@ int Matrix<T>::Height(bool forceEven)
 		return m_Height + 1;
 	return m_Height;
 }
+
+
 
 
 

@@ -4,7 +4,17 @@
 FluxWaveletDenoising::FluxWaveletDenoising(WaveletData* data)
 {
 	_waveletData = data;
+	_zero = 0;
+	_one = 1;
+	_zeroV = 0;
+	_oneV = 1;
+	_maxV = 999999999;
+	_max = 999999999;
+	_minV = -999999999;
+	_min = -999999999;
 }
+
+
 
 /// <summary>
 /// Performs 1D Discrete Wavelet Transform
@@ -127,7 +137,7 @@ WaveletImage<pixel_t> FluxWaveletDenoising::Dwt2d(Matrix<pixel_t>& input)
 }
 
 
-Matrix<pixel_t> FluxWaveletDenoising::Idwt2d(WaveletImage<pixel_t> &inputImage)
+Matrix<pixel_t> FluxWaveletDenoising::Idwt2d(WaveletImage<pixel_t>& inputImage)
 {
 	// https://medium.com/@koushikc2000/2d-discrete-wavelet-transformation-and-its-applications-in-digital-image-processing-using-matlab-1f5c68672de3
 	// https://pywavelets.readthedocs.io/en/latest/ref/2d-dwt-and-idwt.html
@@ -139,7 +149,7 @@ Matrix<pixel_t> FluxWaveletDenoising::Idwt2d(WaveletImage<pixel_t> &inputImage)
 	Matrix<pixel_t> restoredL1 = Matrix<pixel_t>(inputImage.Width, initialHeight);
 
 	//Vertical filtering
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int i = 0; i < inputImage.Width; i++)
 	{
 		std::vector<pixel_t> columnLow1 = inputImage.CV->GetColumn(i);
@@ -169,7 +179,7 @@ Matrix<pixel_t> FluxWaveletDenoising::Idwt2d(WaveletImage<pixel_t> &inputImage)
 	Matrix<pixel_t> restoredImage = Matrix<pixel_t>(inputImage.InitialWidth, inputImage.InitialHeight);
 
 	//Horizontal filtering
-#pragma omp parallel for
+//#pragma omp parallel for
 	//for (int i = 0; i < restoredH1.Height(); i++)
 	for (int i = 0; i < inputImage.InitialHeight; i++)
 	{
@@ -182,7 +192,7 @@ Matrix<pixel_t> FluxWaveletDenoising::Idwt2d(WaveletImage<pixel_t> &inputImage)
 		hiRow.clear();
 		delete[] restored;
 	}
-	
+
 	restoredH1.Dispose();
 	restoredL1.Dispose();
 
@@ -226,14 +236,124 @@ FluxWaveletDenoising::~FluxWaveletDenoising()
 
 
 std::vector<WaveletImage<pixel_t>> FluxWaveletDenoising::Wavedec(Matrix<pixel_t>& input) {
-	int w = input.Width();
-	int h = input.Height();
 
-	//Handle odd
+
+	std::vector<WaveletImage<pixel_t>> result = std::vector<WaveletImage<pixel_t>>();
+	int depth = 1;
+	Matrix<pixel_t>* currentMatrix = &input;
+
+	while (currentMatrix->Width() >= _waveletData->Size && currentMatrix->Height() >= _waveletData->Size && depth < 7)
+	{
+		depth++;
+		WaveletImage<pixel_t> dwt = Dwt2d(*currentMatrix);
+		result.push_back(dwt);
+		currentMatrix = dwt.CA;
+	}
+
+	return result;
+}
+
+Matrix<pixel_t> FluxWaveletDenoising::Waveinv(std::vector<WaveletImage<pixel_t>>& input) {
+
 	
+	WaveletImage<pixel_t>& currentImage = input.back();
+	Matrix<pixel_t> recovered = Idwt2d(currentImage);
+	WaveletImage<pixel_t> nextLevel = WaveletImage<pixel_t>();
+	nextLevel.CA = &recovered;
+
+	for (int i = input.size() - 2; i >= 0; --i)
+	{
+		WaveletImage<pixel_t>& toCopy = input[i];
+		nextLevel.CD = toCopy.CD;
+		nextLevel.CH = toCopy.CH;
+		nextLevel.CV = toCopy.CV;
+		nextLevel.Height = toCopy.Height;
+		nextLevel.Width = toCopy.Width;
+		nextLevel.InitialHeight = toCopy.InitialHeight;
+		nextLevel.InitialWidth = toCopy.InitialWidth;
+
+		Matrix<pixel_t> temp = Idwt2d(nextLevel);
+		nextLevel.CA->Dispose();
+		Matrix<pixel_t> recovered2 = temp;
+		nextLevel.CA = &recovered2;
+	}
+
+	return *nextLevel.CA;
+}
 
 
-	return std::vector<WaveletImage<pixel_t>>();
-	
+std::vector<WaveletImage<pixel_t>> FluxWaveletDenoising::ApplyDenoising(std::vector<WaveletImage<pixel_t>>& input, std::vector<pixel_t>& thresholdValues) {
+	std::vector<WaveletImage<pixel_t>> result = std::vector<WaveletImage<pixel_t>>();
+	result.reserve(input.size());
+
+	for (int i = 0; i < input.size() && i < thresholdValues.size(); ++i)
+	{
+
+		WaveletImage<pixel_t> currentImage = input[i];
+		WaveletImage<pixel_t> coppiedImage = currentImage.Copy();
+
+		pixel_t threshold = thresholdValues[i];
+
+
+		if (threshold != 0.0f) {
+			ApplyThreshold(*coppiedImage.CA, threshold);
+			ApplyThreshold(*coppiedImage.CD, threshold);
+			ApplyThreshold(*coppiedImage.CH, threshold);
+			ApplyThreshold(*coppiedImage.CV, threshold);
+		}
+		result.push_back(coppiedImage);
+	}
+
+	return result;
+}
+
+void FluxWaveletDenoising::ApplyThreshold(Matrix<pixel_t>& mat, pixel_t& threshold)
+{
+	int w = mat.Width();
+	int h = mat.Height();
+
+	pixel_t* currentPixels = mat.GetPointer(0);
+
+	int inc = vfloat::size;
+	vfloat thrVSqr = threshold * threshold;
+	vfloat thrV = threshold * threshold;
+	//Apply Garrote thesholding
+	//https://github.com/PyWavelets/pywt/blob/4591748823f2259844b6b3de0ddf60d1a85a6fa7/pywt/_thresholding.py
+	//https://github.com/PyWavelets/pywt/pull/354
+	//https://pywavelets.readthedocs.io/en/latest/ref/thresholding-functions.html#r94bc4984de23-2
+
+	//thresholded = (1 - value **2 / magnitude **2)
+	//x* (1 - (value / abs(x)) **2)
+
+#pragma omp parallel for
+	for (int y = 0; y < h; ++y)
+	{
+		int currentLine = y * w;
+		for (int x = 0; x < w - inc; x += inc)
+		{
+			int index = currentLine + x;
+			vfloat values = vfloat::load_aligned(&currentPixels[index]);
+			vfloat absvalues = xsimd::abs(values);
+			vfloat nn_garrote = values * (1 - (thrVSqr / absvalues * absvalues));
+			auto maskThr = xsimd::ge(absvalues, thrV);
+			values = xsimd::select(maskThr, nn_garrote, _zeroV);
+			values.store_aligned(&currentPixels[index]);
+			
+		}
+
+		for (int x = w - inc; x < w; x++)
+		{
+			int index = currentLine + x;
+			pixel_t values = currentPixels[index];
+			pixel_t nnGarrote = values * (1 - (threshold * threshold / values * values));
+			if (std::abs(values) <= threshold || values == 0) {
+				values = 0;
+			}
+			else {
+				values = nnGarrote;
+			}
+			currentPixels[index] = values;
+		}
+	}
 
 }

@@ -27,16 +27,46 @@ int main()
 	FluxWaveletDenoising denoiser = FluxWaveletDenoising(db4);
 
 	auto timestamp = BenchmarkHelper::StartWatch();
-	WaveletImage<pixel_t> waveletImage = denoiser.Dwt2d(mat);
+	//WaveletImage<pixel_t> waveletImage = denoiser.Dwt2d(mat);
+	std::vector<WaveletImage<pixel_t>> waveletImages = denoiser.Wavedec(mat);
 	BenchmarkHelper::ShowDurationFinal(timestamp, "Forward 2d dwt");
-	
+	std::cout << waveletImages.size() << '\n';
+
+
+	std::vector<pixel_t> thresholds = std::vector<pixel_t>();
+
+	pixel_t mul = 0.5f;
+
+	thresholds.push_back(mul * 50.0f  / 100.f);
+	thresholds.push_back(mul * 75.0f  / 100.f);
+	thresholds.push_back(mul * 50.0f  / 100.f);
+	thresholds.push_back(mul * 100.0f  / 100.f);
+	thresholds.push_back(mul * 100.0f  / 100.f);
+	thresholds.push_back(mul * 25.0f  / 100.f);
+	thresholds.push_back(mul * 0.0f  / 100.f);
+	//thresholds.push_back(0.0f  / 100.f);
+
+
+	auto timestampDenoise = BenchmarkHelper::StartWatch();
+
+	std::vector<WaveletImage<pixel_t>> waveletImagesDenoised = denoiser.ApplyDenoising(waveletImages, thresholds);
+
+	BenchmarkHelper::ShowDurationFinal(timestampDenoise, "Denoising applied");
+
 	auto timestamp2 = BenchmarkHelper::StartWatch();
-	Matrix<pixel_t> waveletedMatrix = denoiser.Idwt2d(waveletImage);
-	waveletImage.Dispose();
+	//Matrix<pixel_t> waveletedMatrix = denoiser.Idwt2d(waveletImage);
+	Matrix<pixel_t> waveletedMatrix = denoiser.Waveinv(waveletImagesDenoised);
+	//waveletImage.Dispose();
 	BenchmarkHelper::ShowDurationFinal(timestamp2, "Inverse 2d dwt");
 
-	ImageInput::FreeFluxImage(processed);
+	for (size_t i = 0; i < waveletImages.size(); i++)
+	{
+		waveletImages[i].Dispose(); 
+		waveletImagesDenoised[i].Dispose();
+	}
+	waveletImages.clear();
 
+	ImageInput::FreeFluxImage(processed);
 	JpegImageEncoder encoder = JpegImageEncoder(waveletedMatrix);
 	encoder.Init();
 	encoder.FastSave(fileOutput);

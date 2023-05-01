@@ -22,6 +22,7 @@ public:
 	void Dispose();
 	int Width(bool forceEven = false);
 	int Height(bool forceEven = false);
+	Matrix<T>* Copy();
 	T& at(int idx);
 	T& at(int idx, int idy);
 };
