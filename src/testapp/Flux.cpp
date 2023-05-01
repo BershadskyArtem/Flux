@@ -17,7 +17,11 @@ int main()
 
 	FluxImageProcessor processor = FluxImageProcessor();
 	
+	auto timeProcess = BenchmarkHelper::StartWatch();
 	auto processed = processor.Process(image, nullptr);
+	BenchmarkHelper::ShowDurationFinal(timeProcess, "Time for processing took");
+
+
 	ImageInput::FreeFluxImage(image);
 
 	Matrix<pixel_t> mat = Matrix<pixel_t>(processed->Width, processed->Height, (pixel_t*)(processed->Pixels));
@@ -27,7 +31,6 @@ int main()
 	FluxWaveletDenoising denoiser = FluxWaveletDenoising(db4);
 
 	auto timestamp = BenchmarkHelper::StartWatch();
-	//WaveletImage<pixel_t> waveletImage = denoiser.Dwt2d(mat);
 	std::vector<WaveletImage<pixel_t>> waveletImages = denoiser.Wavedec(mat);
 	BenchmarkHelper::ShowDurationFinal(timestamp, "Forward 2d dwt");
 	std::cout << waveletImages.size() << '\n';

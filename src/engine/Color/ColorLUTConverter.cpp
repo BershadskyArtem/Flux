@@ -55,10 +55,6 @@ void ColorLUTConverter::ConvertToLab(pixel_t* rIn, pixel_t* gIn, pixel_t* bIn, p
 	//#pragma omp parallel for
 	for (int x = 0; x < size - vfloat::size; x += inc)
 	{
-		if (x == 19419551) {
-			int dk = 100;
-		}
-
 		vfloat rV = vfloat::load_aligned(&rIn[x]);
 		vfloat gV = vfloat::load_aligned(&gIn[x]);
 		vfloat bV = vfloat::load_aligned(&bIn[x]);

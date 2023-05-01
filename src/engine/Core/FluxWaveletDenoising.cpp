@@ -14,8 +14,6 @@ FluxWaveletDenoising::FluxWaveletDenoising(WaveletData* data)
 	_min = -999999999;
 }
 
-
-
 /// <summary>
 /// Performs 1D Discrete Wavelet Transform
 /// </summary>
@@ -24,6 +22,7 @@ FluxWaveletDenoising::FluxWaveletDenoising(WaveletData* data)
 /// <returns></returns>
 WaveletLine FluxWaveletDenoising::Dwt(pixel_t* input, int length)
 {
+	//TODO: Handle case when input length is less than wavelet size. Causes warning in VS.
 	int resultLength = GetDwtLength(length, _waveletData->Size);
 	pixel_t* hi = new pixel_t[resultLength]{};
 	pixel_t* lo = new pixel_t[resultLength]{};
@@ -91,12 +90,6 @@ WaveletImage<pixel_t> FluxWaveletDenoising::Dwt2d(Matrix<pixel_t>& input)
 		row.clear();
 	}
 
-	//std::cout << "Dwt H1\n";
-	//hiHorizontal.Print();
-	//std::cout << "Dwt L1\n";
-	//lowHorizontal.Print();
-
-
 	Matrix<pixel_t>* ca = new Matrix<pixel_t>(coeffsWidth, coeffsHeight);
 	Matrix<pixel_t>* ch = new Matrix<pixel_t>(coeffsWidth, coeffsHeight);
 	Matrix<pixel_t>* cv = new Matrix<pixel_t>(coeffsWidth, coeffsHeight);
@@ -149,7 +142,7 @@ Matrix<pixel_t> FluxWaveletDenoising::Idwt2d(WaveletImage<pixel_t>& inputImage)
 	Matrix<pixel_t> restoredL1 = Matrix<pixel_t>(inputImage.Width, initialHeight);
 
 	//Vertical filtering
-//#pragma omp parallel for
+#pragma omp parallel for
 	for (int i = 0; i < inputImage.Width; i++)
 	{
 		std::vector<pixel_t> columnLow1 = inputImage.CV->GetColumn(i);
@@ -171,16 +164,10 @@ Matrix<pixel_t> FluxWaveletDenoising::Idwt2d(WaveletImage<pixel_t>& inputImage)
 		delete[] restoredLo;
 	}
 
-	//std::cout << "H1\n";
-	//restoredH1.Print();
-	//std::cout << "L1\n";
-	//restoredL1.Print();
-
 	Matrix<pixel_t> restoredImage = Matrix<pixel_t>(inputImage.InitialWidth, inputImage.InitialHeight);
 
 	//Horizontal filtering
-//#pragma omp parallel for
-	//for (int i = 0; i < restoredH1.Height(); i++)
+#pragma omp parallel for
 	for (int i = 0; i < inputImage.InitialHeight; i++)
 	{
 		std::vector<pixel_t> lowRow = restoredL1.GetRow(i);
@@ -339,7 +326,7 @@ void FluxWaveletDenoising::ApplyThreshold(Matrix<pixel_t>& mat, pixel_t& thresho
 			
 		}
 
-		for (int x = w; x < w; x++)
+		for (int x = w - inc; x < w; x++)
 		{
 			int index = currentLine + x;
 			pixel_t values = currentPixels[index];
