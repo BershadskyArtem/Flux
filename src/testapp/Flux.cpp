@@ -38,7 +38,7 @@ int main()
 
 	std::vector<pixel_t> thresholds = std::vector<pixel_t>();
 
-	pixel_t mul = 0.4f;
+	pixel_t mul = 0.8f;
 
 	thresholds.push_back(mul * 50.0f  / 100.f);
 	thresholds.push_back(mul * 75.0f  / 100.f);

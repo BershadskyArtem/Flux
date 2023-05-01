@@ -314,7 +314,8 @@ void FluxWaveletDenoising::ApplyThreshold(Matrix<pixel_t>& mat, pixel_t& thresho
 	for (int y = 0; y < h; ++y)
 	{
 		int currentLine = y * w;
-		for (int x = 0; x < w - inc; x += inc)
+		int x = 0;
+		for (; x < w - inc; x += inc)
 		{
 			int index = currentLine + x;
 			vfloat values = vfloat::load_aligned(&currentPixels[index]);
@@ -326,7 +327,7 @@ void FluxWaveletDenoising::ApplyThreshold(Matrix<pixel_t>& mat, pixel_t& thresho
 			
 		}
 
-		for (int x = w - inc; x < w; x++)
+		for (; x < w; x++)
 		{
 			int index = currentLine + x;
 			pixel_t values = currentPixels[index];
