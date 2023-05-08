@@ -60,7 +60,7 @@ add_library(FLXCore SHARED
     "Core/Wavelets/Daubechies4.cpp"
     "infrastructure/Matrix.h"
     "infrastructure/Matrix.cpp"
-)
+ "Core/imageOperations/BaseImageOperation.h" "Core/ImageOperations/BaseImageOperation.cpp")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET FLXCore PROPERTY CXX_STANDARD 20)

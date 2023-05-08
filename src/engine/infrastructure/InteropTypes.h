@@ -5,12 +5,10 @@ enum PixelType : int {
     Half = 2
 };
 
-
 struct GeneralMetadata {
     int Width;
     int Height;
 };
-
 
 struct GeneralMetadataInternal{
     int Width;
@@ -24,7 +22,6 @@ struct GeneralMetadataInternal{
    /// </summary>
     int MiscI32v2;
 };
-
 
 struct ExifMetadata {
     //Exit metadata
@@ -79,7 +76,58 @@ struct ExifMetadata {
 
     unsigned long FocalLengthNumerator;
     unsigned long FocalLengthDenominator;
+};
 
+enum ProcessingStage : int {
+    /// <summary>
+    /// Unkown. Default.
+    /// </summary>
+    NotSet = 0,
+
+    /// <summary>
+    /// No corrections
+    /// </summary>
+    Initial,
+
+    /// <summary>
+    /// Resized
+    /// </summary>
+    Resize, 
+
+    /// <summary>
+    /// Rotated
+    /// </summary>
+    Rotate, 
+
+    /// <summary>
+    /// Cropped
+    /// </summary>
+    Crop,
+
+    /// <summary>
+    /// Wavelets decomposed
+    /// </summary>
+    Denoise,
+
+    /// <summary>
+    /// Dehaze before wavelets
+    /// </summary>
+    Dehaze,
+
+    /// <summary>
+    /// Clarity (Unsharp mask)
+    /// </summary>
+    Clarity,
+    
+    /// <summary>
+    /// Texture (some convolution)
+    /// </summary>
+    Texture,
+
+    /// <summary>
+    /// WB, HDR, Contrast, levels, Curve, HSL, Tonning
+    /// </summary>
+    LUT 
 };
 
 struct IptcMetadata {
@@ -99,8 +147,202 @@ struct FluxImage {
     int ChannelsCount;
 };
 
-
-struct ProcessSettings {
-    float expCompensation = 0.0f;
+struct InternalImageData {
+    pixel_t* RPixels;
+    pixel_t* GPixels;
+    pixel_t* BPixels;
+    int Width;
+    int Height;
 };
 
+struct InternalLabImage {
+    pixel_t* LPixels;
+    pixel_t* APixels;
+    pixel_t* BPixels;
+    int Width;
+    int Height;
+};
+
+struct ProcessSettings {
+    ProcessingStage ChangedStage;
+    int ChangedLayer;
+    int LayersCount;
+    ProcessSettingsLayer* Layers;
+};
+
+struct BaseProcessingSetting {
+    int Version;
+};
+
+struct CropProcessingSettings {
+    int LeftUp;
+    int LeftDown;
+    int RightUp;
+    int RightDown;
+    int Mode;
+};
+
+struct ResizeProcessingSettings {
+    int ResizeToX;
+    int ResizeToY;
+    int Mode;
+};
+
+struct DenoiseProcessingSettings {
+    int Luminance;
+    int Chrominance;
+    int Details;
+    int ImpulseNoise;
+    int Mode;
+};
+
+struct DehazeProcessingSettings {
+    int Amount;
+    int ColorR;
+    int ColorG;
+    int ColorB;
+    int Mode;
+};
+
+struct ClarityProcessingSettings {
+    int Radius;
+    int Amount;
+    int Threshold;
+    int Mode;
+};
+
+struct TextureProcessingSettings {
+    int Amount;
+    int Mode;
+};
+
+struct LUTProcessingSettings {
+    WBProcessingSettings WhiteBalance;
+    LightProcessingSettings LightSettings;
+    HDRProcessingSettings HDRSettings;
+    HSLProcessingSettings HSLSettings;
+    ToneMappingProcessingSettings ToneSettings;
+    BasicColorProcessingSettings BasicColorSettings;
+    
+    BaseProcessingSetting Mode;
+};
+
+struct ColorHSL {
+    float Hue;
+    float Saturation;
+    float Lightness;
+};
+
+struct BasicColorProcessingSettings {
+    int Vibrance;
+    int Saturation;
+    BaseProcessingSetting Mode;
+};
+
+struct ToneMappingProcessingSettings {
+    ColorHSL MainTone;
+    ColorHSL ShadowsTone;
+    ColorHSL MidTone;
+    ColorHSL HighlightsTone;
+    int Balance;
+};
+
+struct ColorSelectionBorder {
+    float HueLeft;
+    float HueRight;
+
+    float LightnessLeft;
+    float LightnessRight;
+
+    float SaturationLeft;
+    float SaturationRight;
+
+    BaseProcessingSetting Mode;
+};
+
+struct HSLProcessingSettings {
+    HSLColorProcessingSettings Red;
+    HSLColorProcessingSettings Orange;
+    HSLColorProcessingSettings Yellow;
+    HSLColorProcessingSettings Green;
+    HSLColorProcessingSettings Aqua;
+    HSLColorProcessingSettings Blue;
+    HSLColorProcessingSettings Purple;
+    HSLColorProcessingSettings Magenta;
+    HSLColorProcessingSettings Skin;
+
+    int CustomColorsCount;
+    HSLColorProcessingSettings* CustomColors;
+
+    BaseProcessingSetting Mode;
+};
+
+struct HSLColorProcessingSettings {
+    ColorSelectionBorder SelectedColor;
+
+    float HueShift;
+    int Lightness;
+    int Saturation;
+    int Uniformity;
+
+    BaseProcessingSetting Mode;
+};
+
+struct LightProcessingSettings {
+    float Exposure;
+    int Contrast;
+    int Brightness;
+    BaseProcessingSetting Mode;
+};
+
+struct HDRProcessingSettings {
+    int Whites;
+    int Highlights;
+    int Shadows;
+    int Blacks;
+    BaseProcessingSetting Mode;
+};
+
+struct WBProcessingSettings {
+    int Temperature;
+    int Tint;
+    BaseProcessingSetting Mode;
+};
+
+struct ProcessSettingsLayer {
+    CropProcessingSettings Crop;
+    ResizeProcessingSettings Resize;
+    DenoiseProcessingSettings Denoise;
+    DehazeProcessingSettings Dehaze;
+    ClarityProcessingSettings Clarity;
+    TextureProcessingSettings Texture;
+    LUTProcessingSettings LUT;
+};
+
+struct ProcessingCache {
+    int LayersCount;
+    ProcessingLayerCache* Layers;
+};
+
+struct ProcessingMask {
+
+};
+
+struct ProcessingLayerCache {
+    int CachesCount;
+    ProcessingCacheEntry* Caches;
+    ProcessingMask Mask;
+};
+
+struct ProcessingCacheEntry {
+    ProcessingStage Stage;
+    int CachesCount;
+    void* Caches;
+    int SettingsCount;
+    void* PreviousSettings;
+};
+
+struct DenoiseCache {
+    int WaveletDecCount;
+    WaveletImage<pixel_t>* WaveletDec;
+};
