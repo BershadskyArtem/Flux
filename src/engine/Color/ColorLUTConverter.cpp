@@ -53,7 +53,7 @@ void ColorLUTConverter::ConvertToLab(pixel_t* rIn, pixel_t* gIn, pixel_t* bIn, p
 	int size = width * height;
 	int inc = vfloat::size;
 
-	#pragma omp parallel for
+	#pragma omp parallel for 
 	for (int y = 0; y < height; y++)
 	{
 		int startOfLine = y * width;
@@ -92,38 +92,4 @@ void ColorLUTConverter::ConvertToLab(pixel_t* rIn, pixel_t* gIn, pixel_t* bIn, p
 			bOut[idx] = b;
 		}
 	}
-
-	//#pragma omp parallel for
-	//for (int x = 0; x < size - vfloat::size; x += inc)
-	//{
-	//	vfloat rV = vfloat::load_aligned(&rIn[x]);
-	//	vfloat gV = vfloat::load_aligned(&gIn[x]);
-	//	vfloat bV = vfloat::load_aligned(&bIn[x]);
-	//
-	//
-	//	vfloat lV = s_LabLutL.Get01(rV, gV, bV);
-	//	vfloat aV = s_LabLutA.Get01(rV, gV, bV);
-	//	//Here we dont need to create new vfloat, we can use the old one
-	//	bV = s_LabLutB.Get01(rV, gV, bV);
-	//
-	//	lV.store_aligned(&lOut[x]);
-	//	aV.store_aligned(&aOut[x]);
-	//	bV.store_aligned(&bOut[x]);
-	//}
-	//
-	//for (int x = size - vfloat::size; x < size; x++)
-	//{
-	//	float r = rIn[x];
-	//	float g = gIn[x];
-	//	float b = bIn[x];
-	//
-	//
-	//	float l = s_LabLutL.Get01(r, g, b);
-	//	float a = s_LabLutA.Get01(r, g, b);
-	//	b = s_LabLutA.Get01(r, g, b);
-	//
-	//	lOut[x] = l;
-	//	aOut[x] = a;
-	//	bOut[x] = b;
-	//}
 }

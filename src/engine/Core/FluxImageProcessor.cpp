@@ -1,4 +1,5 @@
 #include "FluxImageProcessor.h"
+#include "../infrastructure/Matrix.h"
 
 FluxImage* FluxImageProcessor::Process(FluxImage* image, ProcessSettings* settings)
 {
@@ -36,4 +37,68 @@ FluxImage* FluxImageProcessor::Process(FluxImage* image, ProcessSettings* settin
 	result->ChannelsCount = 1;
 
 	return result;
+}
+
+FluxImage* FluxImageProcessor::PreProcess(FluxImage* image, ProcessSettings* settings)
+{
+	//Matrix<pixel_t> image = Matrix<pixel_t>(image->Width, image->Height, (pixel_t*)image->Pixels);
+	
+	//Deinterleave
+
+	//Color manage 
+
+	//Wavelet decomposition
+
+	//Fill caches
+
+	//Return
+
+	return nullptr;
+}
+
+FluxImage* FluxImageProcessor::FastProcess(FluxImage* image, ProcessSettings* settings)
+{
+	//Check performed operation compared to previous fast process call
+	
+	//TODO: Create mask drawing api
+
+	//Get latest cache
+
+	//Apply changes from the latest cache point
+
+	/*
+		White balance? After Skew or in LUT?
+		
+		Pipeline:
+
+		--Before all
+		Crop 
+		Skew
+		
+
+		--Foreach layer
+		
+		--Prepare 
+		White balance (Only on first layer)
+		To Lab
+
+		--Spatial
+		Denoise
+		Dehaze
+		Clarity
+		Texture
+
+		--LUT
+		Brightness - HDR
+		Contrast
+		Levels \
+				Can be swaped
+		Curve  / 
+		HSL
+		Toning
+
+		--Linear interpolate between previous and current layer
+	*/
+
+	return nullptr;
 }

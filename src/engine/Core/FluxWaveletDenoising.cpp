@@ -22,50 +22,221 @@ FluxWaveletDenoising::FluxWaveletDenoising(WaveletData* data)
 /// <returns></returns>
 WaveletLine FluxWaveletDenoising::Dwt(pixel_t* input, int length)
 {
-	//TODO: Handle case when input length is less than wavelet size. Causes warning in VS.
-	int resultLength = GetDwtLength(length, _waveletData->Size);
-	pixel_t* hi = new pixel_t[resultLength]{};
-	pixel_t* lo = new pixel_t[resultLength]{};
+	int PassSize = _waveletData->Size;
+	int resultLength = GetDwtLength(length, PassSize);
+	pixel_t* hi = new pixel_t[resultLength];
+	pixel_t* lo = new pixel_t[resultLength];
+	pixel_t* DecompositionHighpass = _waveletData->HighPassDeconstruction;
+	pixel_t* DecompositionLowpass = _waveletData->LowPassDeconstruction;
 
 	int inputIdx = 1;
-	int currentHiLoIdx = 0;
-	//Zero padded means that we can ignore some of the values
-	for (; inputIdx < _waveletData->Size - 1; inputIdx += 2, currentHiLoIdx++)
+	int outputIdx = 0;
+
+	//In case our input is shorter than pass size.
+	if (length < PassSize)
 	{
-		//j <= InputIdx because we if i - j < 0 => we are trying to access out of bounds
-		// elements and since we use 0 padding we can just skip them all at once.
-		for (int j = 0; j <= inputIdx && j < _waveletData->Size; j++)
+		//Left overhang
+		for (; inputIdx < length; inputIdx += 2, outputIdx++)
 		{
-			hi[currentHiLoIdx] += input[inputIdx - j] * _waveletData->HighPassDeconstruction[j];
-			lo[currentHiLoIdx] += input[inputIdx - j] * _waveletData->LowPassDeconstruction[j];
+			int j = 0;
+			pixel_t hiValue = 0;
+			pixel_t loValue = 0;
+
+			for (; j <= inputIdx; j++)
+			{
+				int idx = inputIdx - j;
+				hiValue += input[idx] * DecompositionHighpass[j];
+				loValue += input[idx] * DecompositionLowpass[j];
+			}
+
+			//https://github.com/PyWavelets/pywt/blob/7c27f12ecc679133f1ed16d95a1dce1abbf7152e/pywt/_extensions/c/convolution.template.c#L153
+
+			while (j < PassSize)
+			{
+				//Even symmetry
+				for (int k = 0; k < length && j < PassSize; k++, j++)
+				{
+					hiValue += input[k] * DecompositionHighpass[j];
+					loValue += input[k] * DecompositionLowpass[j];
+				}
+
+				//Odd symmetry
+				for (int k = 0; k < length && j < PassSize; k++, j++)
+				{
+					hiValue += input[k] * DecompositionHighpass[j];
+					loValue += input[length - 1 - k] * DecompositionLowpass[j];
+				}
+			}
+
+			hi[outputIdx] = hiValue;
+			lo[outputIdx] = loValue;
 		}
+
+		//Center overhang
+		for (; inputIdx < PassSize; inputIdx += 2, outputIdx++)
+		{
+			int j = 0;
+			pixel_t hiValue = 0;
+			pixel_t loValue = 0;
+
+			while (inputIdx - j >= length)
+			{
+				int k;
+				for (k = 0; k < length && inputIdx - j >= length; ++j, ++k)
+				{
+					hiValue += DecompositionHighpass[inputIdx - length - j] *
+						input[length - 1 - k];
+					loValue += DecompositionLowpass[inputIdx - length - j] *
+						input[length - 1 - k];
+				}
+
+				for (k = 0; k < length && inputIdx - j >= length; ++j, ++k)
+				{
+					hiValue += DecompositionHighpass[inputIdx - length - j] * input[k];
+					loValue += DecompositionLowpass[inputIdx - length - j] * input[k];
+				}
+			}
+
+			for (; j <= inputIdx; ++j)
+			{
+				hiValue += DecompositionHighpass[j] * input[inputIdx - j];
+				loValue += DecompositionLowpass[j] * input[inputIdx - j];
+			}
+
+			while (j < PassSize)
+			{
+				int k;
+				for (k = 0; k < length && j < PassSize; ++j, ++k)
+				{
+					hiValue += DecompositionHighpass[j] * input[k];
+					loValue += DecompositionLowpass[j] * input[k];
+				}
+
+				for (k = 0; k < length && j < PassSize; ++k, ++j)
+				{
+					hiValue += DecompositionHighpass[j] * input[length - 1 - k];
+					loValue += DecompositionLowpass[j] * input[length - 1 - k];
+				}
+			}
+
+			hi[outputIdx] = hiValue;
+			lo[outputIdx] = loValue;
+		}
+
+
+		//Right overhang
+		for (; inputIdx < length + PassSize - 1; inputIdx += 2, outputIdx++)
+		{
+			int j = 0;
+
+			pixel_t hiValue = 0;
+			pixel_t loValue = 0;
+
+			while (inputIdx - j >= length)
+			{
+				int k;
+				for (k = 0; k < length && inputIdx - j >= length; ++j, ++k)
+				{
+					hiValue += DecompositionHighpass[inputIdx - length - j] *
+						input[length - 1 - k];
+					loValue += DecompositionLowpass[inputIdx - length - j] *
+						input[length - 1 - k];
+				}
+
+				for (k = 0; k < length && inputIdx - j >= length; ++j, ++k)
+				{
+					hiValue += DecompositionHighpass[inputIdx - length - j] * input[k];
+					loValue += DecompositionLowpass[inputIdx - length - j] * input[k];
+				}
+			}
+
+			for (; j < PassSize; ++j)
+			{
+				hiValue += DecompositionHighpass[j] * input[inputIdx - j];
+				loValue += DecompositionLowpass[j] * input[inputIdx - j];
+			}
+
+			hi[outputIdx] = hiValue;
+			lo[outputIdx] = loValue;
+
+		}
+
+		return WaveletLine(hi, lo, resultLength);
 	}
 
-	//Main Part
-	//j<=inputIdx cannot happen so we can remove extra check in the inner loop
-	for (; inputIdx < length; inputIdx += 2, currentHiLoIdx++)
+
+	//Left overhang
+	for (; inputIdx < PassSize; inputIdx += 2, outputIdx++)
 	{
-		for (int j = 0; j < _waveletData->Size; j++)
+		int j = 0;
+
+		pixel_t hiValue = 0;
+		pixel_t loValue = 0;
+
+		for (; j <= inputIdx; j++)
 		{
-			int index = inputIdx - j;
-			hi[currentHiLoIdx] += input[index] * _waveletData->HighPassDeconstruction[j];
-			lo[currentHiLoIdx] += input[index] * _waveletData->LowPassDeconstruction[j];
+			int idx = inputIdx - j;
+			hiValue += input[idx] * DecompositionHighpass[j];
+			loValue += input[idx] * DecompositionLowpass[j];
 		}
+
+		for (; j < PassSize; j++)
+		{
+			int idx = inputIdx - j;
+			idx = std::abs(idx) - 1;
+
+			hiValue += input[idx] * DecompositionHighpass[j];
+			loValue += input[idx] * DecompositionLowpass[j];
+		}
+
+		hi[outputIdx] = hiValue;
+		lo[outputIdx] = loValue;
 	}
+
+
+	//Center (No overhang)
+	for (; inputIdx < length; inputIdx += 2, outputIdx++)
+	{
+		pixel_t hiValue = 0;
+		pixel_t loValue = 0;
+		for (int j = 0; j < PassSize; j++)
+		{
+			int idx = inputIdx - j;
+			hiValue += input[idx] * DecompositionHighpass[j];
+			loValue += input[idx] * DecompositionLowpass[j];
+		}
+		hi[outputIdx] = hiValue;
+		lo[outputIdx] = loValue;
+	}
+
 
 	//Right overhang
-	for (; inputIdx < length + _waveletData->Size; inputIdx += 2, currentHiLoIdx++)
+	for (; inputIdx < length + PassSize - 2; inputIdx += 2, outputIdx++)
 	{
-		// inputIdx - (input.Length - 1) is a count of cells that are overhang
-		// PassSize - count of overhang cells is the max index for the j
-		int maxInverseWaveletIndex = _waveletData->Size - (inputIdx - (length - 1));
-		for (int j = 0; j < maxInverseWaveletIndex; j++)
+		pixel_t hiValue = 0;
+		pixel_t loValue = 0;
+
+		//There is index overhang
+		int j = 0;
+		for (; j < inputIdx - (length - 1); j++)
 		{
-			int idxm = inputIdx - _waveletData->Size + j + 1;
-			int idxms = _waveletData->Size - 1 - j;
-			hi[currentHiLoIdx] += input[inputIdx - _waveletData->Size + j + 1] * _waveletData->HighPassDeconstruction[_waveletData->Size - 1 - j];
-			lo[currentHiLoIdx] += input[inputIdx - _waveletData->Size + j + 1] * _waveletData->LowPassDeconstruction[_waveletData->Size - 1 - j];
+			int idx = inputIdx - j;
+			idx = (length) - (idx - (length - 1));
+
+			hiValue += input[idx] * DecompositionHighpass[j];
+			loValue += input[idx] * DecompositionLowpass[j];
 		}
+
+		//There is no index overhang
+		for (; j < PassSize; j++)
+		{
+			int idx = inputIdx - j;
+			hiValue += input[idx] * DecompositionHighpass[j];
+			loValue += input[idx] * DecompositionLowpass[j];
+		}
+
+		hi[outputIdx] = hiValue;
+		lo[outputIdx] = loValue;
 	}
 
 	return WaveletLine(hi, lo, resultLength);
@@ -310,7 +481,7 @@ void FluxWaveletDenoising::ApplyThreshold(Matrix<pixel_t>& mat, pixel_t& thresho
 	//thresholded = (1 - value **2 / magnitude **2)
 	//x* (1 - (value / abs(x)) **2)
 
-#pragma omp parallel for
+	#pragma omp parallel for
 	for (int y = 0; y < h; ++y)
 	{
 		int currentLine = y * w;

@@ -7,4 +7,6 @@
 class FluxImageProcessor {
 public:
 	static FluxImage* Process(FluxImage* image, ProcessSettings* settings);
+	static FluxImage* PreProcess(FluxImage* image, ProcessSettings* settings);
+	static FluxImage* FastProcess(FluxImage* image, ProcessSettings* settings);
 };

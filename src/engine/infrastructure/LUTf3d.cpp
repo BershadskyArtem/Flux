@@ -99,7 +99,8 @@ void LUTf3d::ApplyLUTs(pixel_t* rIn, pixel_t* gIn, pixel_t* bIn, pixel_t* rOut, 
 	for (int y = 0; y < height; y++)
 	{
 		int startOfLine = y * width;
-		for (int x = 0; x < width - inc; x+=inc)
+		int x = 0;
+		for (; x < width - inc; x+=inc)
 		{
 			int index = startOfLine + x;
 			vfloat rP = vfloat::load_aligned(&rIn[index]);
@@ -113,7 +114,7 @@ void LUTf3d::ApplyLUTs(pixel_t* rIn, pixel_t* gIn, pixel_t* bIn, pixel_t* rOut, 
 			nb.store_aligned(&bOut[index]);
 		}
 
-		for (int x = width - inc; x < width; x++)
+		for (; x < width; x++)
 		{
 			int index = startOfLine + x;
 			float rP = rIn[index];
