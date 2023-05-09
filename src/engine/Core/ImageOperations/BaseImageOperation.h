@@ -4,5 +4,6 @@
 
 class BaseImageOperation {
 public:
-	ProcessingCacheEntry* Run(ProcessingCacheEntry* previousCachedStage, ProcessingCacheEntry* currentCachedStage) = 0;
+	virtual ProcessingCacheEntry* Run(ProcessingCacheEntry* previousCachedStage, ProcessingCacheEntry* currentCachedStage, ProcessSettingsLayer* newSettings) = 0;
+	virtual void Dispose() = 0;
 };

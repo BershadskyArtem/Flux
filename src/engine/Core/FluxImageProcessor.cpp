@@ -1,5 +1,17 @@
 #include "FluxImageProcessor.h"
+#include "ImageOperations/Implementations/CropImageOperation.h"
+#include "../infrastructure/BenchmarkHelper.h"
 
+void FluxImageProcessor::Init()
+{
+	s_Operations.push(new CropImageOperation());
+	//s_Operations.push(new ResizeImageOperation());
+	//s_Operations.push(new DenoiseImageOperation());
+	//s_Operations.push(new DehazeImageOperation());
+	//s_Operations.push(new ClarityImageOperation());
+	//s_Operations.push(new TextureImageOperation());
+	s_Operations.push(new LutImageOperation());
+}
 
 FluxImage* FluxImageProcessor::Process(FluxImage* image, ProcessSettings* settings)
 {
@@ -17,6 +29,38 @@ FluxImage* FluxImageProcessor::Process(FluxImage* image, ProcessSettings* settin
 	pixel_t* bChannel = new pixel_t[width * height];
 
 	PixelsHelper::Deinterleave(rgbImage, rChannel, gChannel, bChannel, width, height);
+
+
+	CropImageOperation crop = CropImageOperation();
+
+	ProcessingCacheEntry cache = ProcessingCacheEntry();
+	cache.CachesCount = 1;
+
+	InternalImageData internalImage = InternalImageData();
+	internalImage.RPixels = rChannel;
+	internalImage.GPixels = gChannel;
+	internalImage.BPixels = bChannel;
+	internalImage.Width = width;
+	internalImage.Height = height;
+	
+	cache.Caches = &internalImage;
+
+	ProcessingCacheEntry cropCache = ProcessingCacheEntry();
+	
+	auto cropTime = BenchmarkHelper::StartWatch();
+
+	ProcessingCacheEntry* newCropCache = crop.Run(&cache, &cropCache, &settings->Layers[0]);
+
+	BenchmarkHelper::ShowDurationFinal(cropTime, "Crop took: ");
+
+	cropCache = *newCropCache;
+
+	rChannel = ((InternalImageData*)cropCache.Caches)->RPixels;
+	gChannel = ((InternalImageData*)cropCache.Caches)->GPixels;
+	bChannel = ((InternalImageData*)cropCache.Caches)->BPixels;
+
+	width = ((InternalImageData*)cropCache.Caches)->Width;
+	height = ((InternalImageData*)cropCache.Caches)->Height;
 
 	ColorLUTConverter::ConvertToLab(rChannel, gChannel, bChannel, rChannel, gChannel, bChannel, width, height);
 
@@ -164,9 +208,10 @@ FluxImage* FluxImageProcessor::FastProcessToBitmap(ProcessingCache* cache, Proce
 	}
 
 	
-	for (int i = correctionStage; i < length; i++)
+	int correctionPipelineLength = 1;
+	for (int i = correctionStage; i < correctionPipelineLength; i++)
 	{
-
+		BaseImageOperation* op = 
 	}
 
 
@@ -194,31 +239,37 @@ void FluxImageProcessor::DisposeStageCache(ProcessingCacheEntry* entry)
 	case ProcessingStage::Initial:
 		return;
 
-	case ProcessingStage::Resize:
-		InternalLabImage* image = (InternalLabImage*)entry->Caches;
-		delete[] image->LPixels;
-		delete[] image->APixels;
-		delete[] image->BPixels;
-		delete image;
+	case ProcessingStage::Resize: {
+		InternalLabImage* imageResized = (InternalLabImage*)entry->Caches;
+		delete[] imageResized->LPixels;
+		delete[] imageResized->APixels;
+		delete[] imageResized->BPixels;
+		delete imageResized;
 		return;
-
+	}
+		
 	case ProcessingStage::Rotate:
-		InternalLabImage* image = (InternalLabImage*)entry->Caches;
-		delete[] image->LPixels;
-		delete[] image->APixels;
-		delete[] image->BPixels;
-		delete image;
+	{
+		InternalLabImage* imageRotated = (InternalLabImage*)entry->Caches;
+		delete[] imageRotated->LPixels;
+		delete[] imageRotated->APixels;
+		delete[] imageRotated->BPixels;
+		delete imageRotated;
 		return;
+	}
+		
 
-	case ProcessingStage::Crop:
-		InternalLabImage* image = (InternalLabImage*)entry->Caches;
-		delete[] image->LPixels;
-		delete[] image->APixels;
-		delete[] image->BPixels;
-		delete image;
+	case ProcessingStage::Crop: {
+		InternalLabImage* imageCropped = (InternalLabImage*)entry->Caches;
+		delete[] imageCropped->LPixels;
+		delete[] imageCropped->APixels;
+		delete[] imageCropped->BPixels;
+		delete imageCropped;
 		return;
+	}
+		
 
-	case ProcessingStage::Denoise:
+	case ProcessingStage::Denoise: {
 		DenoiseCache* cache = (DenoiseCache*)entry->Caches;
 		for (int i = 0; i < cache->WaveletDecCount; i++)
 		{
@@ -227,38 +278,46 @@ void FluxImageProcessor::DisposeStageCache(ProcessingCacheEntry* entry)
 		}
 		delete cache;
 		return;
+	}
+		
 
-	case ProcessingStage::Dehaze:
-		InternalLabImage* image = (InternalLabImage*)entry->Caches;
-		delete[] image->LPixels;
-		delete[] image->APixels;
-		delete[] image->BPixels;
-		delete image;
+	case ProcessingStage::Dehaze: {
+		InternalLabImage* imageDehazed = (InternalLabImage*)entry->Caches;
+		delete[] imageDehazed->LPixels;
+		delete[] imageDehazed->APixels;
+		delete[] imageDehazed->BPixels;
+		delete imageDehazed;
 		return;
+	}
+		
+	case ProcessingStage::Clarity: {
+		InternalLabImage* imageClarified = (InternalLabImage*)entry->Caches;
+		delete[] imageClarified->LPixels;
+		delete[] imageClarified->APixels;
+		delete[] imageClarified->BPixels;
+		delete imageClarified;
+		return;
+	}
+		
 
-	case ProcessingStage::Clarity:
-		InternalLabImage* image = (InternalLabImage*)entry->Caches;
-		delete[] image->LPixels;
-		delete[] image->APixels;
-		delete[] image->BPixels;
-		delete image;
+	case ProcessingStage::Texture: {
+		InternalLabImage* imageTextured = (InternalLabImage*)entry->Caches;
+		delete[] imageTextured->LPixels;
+		delete[] imageTextured->APixels;
+		delete[] imageTextured->BPixels;
+		delete imageTextured;
 		return;
+	}
+		
 
-	case ProcessingStage::Texture:
-		InternalLabImage* image = (InternalLabImage*)entry->Caches;
-		delete[] image->LPixels;
-		delete[] image->APixels;
-		delete[] image->BPixels;
-		delete image;
+	case ProcessingStage::LUTStage: {
+		InternalLabImage* imageColorCorrected = (InternalLabImage*)entry->Caches;
+		delete[] imageColorCorrected->LPixels;
+		delete[] imageColorCorrected->APixels;
+		delete[] imageColorCorrected->BPixels;
+		delete imageColorCorrected;
 		return;
-
-	case ProcessingStage::LUT:
-		InternalLabImage* image = (InternalLabImage*)entry->Caches;
-		delete[] image->LPixels;
-		delete[] image->APixels;
-		delete[] image->BPixels;
-		delete image;
-		return;
+	}
 
 	default:
 		return;

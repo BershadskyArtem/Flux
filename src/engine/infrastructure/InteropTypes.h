@@ -1,4 +1,37 @@
 #pragma once
+#include "FLXDefines.h"
+#include "../Core/WaveletImage.h"
+
+
+
+struct InternalImageData;
+struct InternalLabImage;
+struct ProcessSettings;
+struct BaseProcessingSetting;
+struct CropProcessingSettings;
+struct ResizeProcessingSettings;
+struct DenoiseProcessingSettings;
+struct DehazeProcessingSettings;
+struct ClarityProcessingSettings;
+struct TextureProcessingSettings;
+struct LUTProcessingSettings;
+struct ColorHSL;
+struct BasicColorProcessingSettings;
+struct ToneMappingProcessingSettings;
+struct ColorSelectionBorder;
+struct HSLProcessingSettings;
+struct HSLColorProcessingSettings;
+struct LightProcessingSettings;
+struct HDRProcessingSettings;
+struct WBProcessingSettings;
+struct ProcessSettingsLayer;
+struct ProcessingCache;
+struct ProcessingMask;
+struct ProcessingLayerCache;
+struct ProcessingCacheEntry;
+
+
+
 enum PixelType : int {
     UnsignedByte = 0,
     Float = 1,
@@ -127,7 +160,14 @@ enum ProcessingStage : int {
     /// <summary>
     /// WB, HDR, Contrast, levels, Curve, HSL, Tonning
     /// </summary>
-    LUT 
+    LUTStage
+};
+
+
+struct ColorHSL {
+    float Hue;
+    float Saturation;
+    float Lightness;
 };
 
 struct IptcMetadata {
@@ -175,10 +215,10 @@ struct BaseProcessingSetting {
 };
 
 struct CropProcessingSettings {
-    int LeftUp;
-    int LeftDown;
-    int RightUp;
-    int RightDown;
+    int LeftUpX;
+    int LeftUpY;
+    int RightDownX;
+    int RightDownY;
     int Mode;
 };
 
@@ -216,36 +256,29 @@ struct TextureProcessingSettings {
     int Mode;
 };
 
-struct LUTProcessingSettings {
-    WBProcessingSettings WhiteBalance;
-    LightProcessingSettings LightSettings;
-    HDRProcessingSettings HDRSettings;
-    HSLProcessingSettings HSLSettings;
-    ToneMappingProcessingSettings ToneSettings;
-    BasicColorProcessingSettings BasicColorSettings;
-    
+
+
+struct WBProcessingSettings {
+    int Temperature;
+    int Tint;
     BaseProcessingSetting Mode;
 };
 
-struct ColorHSL {
-    float Hue;
-    float Saturation;
-    float Lightness;
-};
-
-struct BasicColorProcessingSettings {
-    int Vibrance;
-    int Saturation;
+struct LightProcessingSettings {
+    float Exposure;
+    int Contrast;
+    int Brightness;
     BaseProcessingSetting Mode;
 };
 
-struct ToneMappingProcessingSettings {
-    ColorHSL MainTone;
-    ColorHSL ShadowsTone;
-    ColorHSL MidTone;
-    ColorHSL HighlightsTone;
-    int Balance;
+struct HDRProcessingSettings {
+    int Whites;
+    int Highlights;
+    int Shadows;
+    int Blacks;
+    BaseProcessingSetting Mode;
 };
+
 
 struct ColorSelectionBorder {
     float HueLeft;
@@ -256,6 +289,17 @@ struct ColorSelectionBorder {
 
     float SaturationLeft;
     float SaturationRight;
+
+    BaseProcessingSetting Mode;
+};
+
+struct HSLColorProcessingSettings {
+    ColorSelectionBorder SelectedColor;
+
+    float HueShift;
+    int Lightness;
+    int Saturation;
+    int Uniformity;
 
     BaseProcessingSetting Mode;
 };
@@ -277,37 +321,48 @@ struct HSLProcessingSettings {
     BaseProcessingSetting Mode;
 };
 
-struct HSLColorProcessingSettings {
-    ColorSelectionBorder SelectedColor;
 
-    float HueShift;
-    int Lightness;
+struct ToneMappingProcessingSettings {
+    ColorHSL MainTone;
+    ColorHSL ShadowsTone;
+    ColorHSL MidTone;
+    ColorHSL HighlightsTone;
+    int Balance;
+};
+
+struct BasicColorProcessingSettings {
+    int Vibrance;
     int Saturation;
-    int Uniformity;
-
     BaseProcessingSetting Mode;
 };
 
-struct LightProcessingSettings {
-    float Exposure;
-    int Contrast;
-    int Brightness;
+struct LUTProcessingSettings {
+    WBProcessingSettings WhiteBalance;
+    LightProcessingSettings LightSettings;
+    HDRProcessingSettings HDRSettings;
+    HSLProcessingSettings HSLSettings;
+    ToneMappingProcessingSettings ToneSettings;
+    BasicColorProcessingSettings BasicColorSettings;
+    
     BaseProcessingSetting Mode;
 };
 
-struct HDRProcessingSettings {
-    int Whites;
-    int Highlights;
-    int Shadows;
-    int Blacks;
-    BaseProcessingSetting Mode;
-};
 
-struct WBProcessingSettings {
-    int Temperature;
-    int Tint;
-    BaseProcessingSetting Mode;
-};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 struct ProcessSettingsLayer {
     CropProcessingSettings Crop;
@@ -341,6 +396,13 @@ struct ProcessingCacheEntry {
     int SettingsCount;
     void* PreviousSettings;
 };
+
+//template <typename T>
+//struct DenoiseCache {
+//    int WaveletDecCount;
+//    T* WaveletDec;
+//};
+
 
 struct DenoiseCache {
     int WaveletDecCount;

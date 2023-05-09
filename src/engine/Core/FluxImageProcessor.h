@@ -11,9 +11,10 @@
 
 class FluxImageProcessor {
 private:
-	static std::stack<ProcessingOperation*> s_Operations;
+	static std::stack<BaseImageOperation*> s_Operations;
 
 public:
+	static void Init();
 	static FluxImage* Process(FluxImage* image, ProcessSettings* settings);
 	static ProcessingCache* PreProcess(FluxImage* image, ProcessSettings* settings);
 	static FluxImage* FastProcess(FluxImage* image, ProcessSettings* settings);

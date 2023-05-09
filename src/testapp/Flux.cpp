@@ -18,7 +18,17 @@ int main()
 	FluxImageProcessor processor = FluxImageProcessor();
 	
 	auto timeProcess = BenchmarkHelper::StartWatch();
-	auto processed = processor.Process(image, nullptr);
+	ProcessSettings set = ProcessSettings();
+	set.Layers = new ProcessSettingsLayer[1]{};
+	set.Layers[0] = ProcessSettingsLayer();
+	set.Layers[0].Crop.LeftUpX = 100;
+	set.Layers[0].Crop.LeftUpY = 100;
+	set.Layers[0].Crop.RightDownX = 750;
+	set.Layers[0].Crop.RightDownY = 750;
+	ProcessingCache* cache = processor.PreProcess(image, &set);
+	
+
+	auto processed = processor.FastProcessToBitmap(cache, &set);
 	BenchmarkHelper::ShowDurationFinal(timeProcess, "Time for processing took");
 
 

@@ -48,6 +48,11 @@ add_executable (FluxTest
     "../engine/Core/Wavelets/Daubechies4.cpp"
     "../engine/infrastructure/Matrix.h"
     "../engine/infrastructure/Matrix.cpp"
+    "../engine/Core/imageOperations/BaseImageOperation.h" 
+    "../engine/Core/ImageOperations/BaseImageOperation.cpp" 
+    "../engine/Core/ImageOperations/Implementations/CropImageOperation.h" 
+    "../engine/Core/ImageOperations/Implementations/CropImageOperation.cpp" 
+    "../engine/infrastructure/InteropTypes.cpp"
 )
 
 if ( MSVC )
