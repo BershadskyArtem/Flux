@@ -4,13 +4,13 @@
 
 void FluxImageProcessor::Init()
 {
-	s_Operations.push(new CropImageOperation());
+	//s_Operations.push(new CropImageOperation());
 	//s_Operations.push(new ResizeImageOperation());
 	//s_Operations.push(new DenoiseImageOperation());
 	//s_Operations.push(new DehazeImageOperation());
 	//s_Operations.push(new ClarityImageOperation());
 	//s_Operations.push(new TextureImageOperation());
-	s_Operations.push(new LutImageOperation());
+	//s_Operations.push(new LutImageOperation());
 }
 
 FluxImage* FluxImageProcessor::Process(FluxImage* image, ProcessSettings* settings)
@@ -211,7 +211,7 @@ FluxImage* FluxImageProcessor::FastProcessToBitmap(ProcessingCache* cache, Proce
 	int correctionPipelineLength = 1;
 	for (int i = correctionStage; i < correctionPipelineLength; i++)
 	{
-		BaseImageOperation* op = 
+		//BaseImageOperation* op = 
 	}
 
 

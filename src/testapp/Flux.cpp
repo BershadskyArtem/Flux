@@ -4,89 +4,54 @@
 #include "../engine/infrastructure/BenchmarkHelper.h"
 #include "../engine/Core/FluxImageProcessor.h"
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 using namespace std;
 
 int main()
 {
-	std::string fileInput = "C:\\Users\\Artyom\\Downloads\\rectimage1023-1023.jpg";
-	std::string fileOutput = "C:\\Users\\Artyom\\Downloads\\waveleted.jpg";
+	Converter::Init();
+	pixel_t r = 1;
+	pixel_t g = 0;
+	pixel_t b = 0;
 
-	ImageInput input = ImageInput(fileInput);
-	input.Init();
-	FluxImage* image = input.DecodeImage();
+	pixel_t okL = 0;
+	pixel_t okA = 0;
+	pixel_t okB = 0;
 
-	FluxImageProcessor processor = FluxImageProcessor();
-	
-	auto timeProcess = BenchmarkHelper::StartWatch();
-	ProcessSettings set = ProcessSettings();
-	set.Layers = new ProcessSettingsLayer[1]{};
-	set.Layers[0] = ProcessSettingsLayer();
-	set.Layers[0].Crop.LeftUpX = 100;
-	set.Layers[0].Crop.LeftUpY = 100;
-	set.Layers[0].Crop.RightDownX = 750;
-	set.Layers[0].Crop.RightDownY = 750;
-	ProcessingCache* cache = processor.PreProcess(image, &set);
-	
-
-	auto processed = processor.FastProcessToBitmap(cache, &set);
-	BenchmarkHelper::ShowDurationFinal(timeProcess, "Time for processing took");
+	pixel_t okC = 0;
+	pixel_t okH = 0;
 
 
-	ImageInput::FreeFluxImage(image);
+	Converter::RGB2OKLab(r,g,b, okL, okA, okB);
+	Converter::OkLab2OkLCh(okL, okA, okB, okL, okC, okH);
 
-	Matrix<pixel_t> mat = Matrix<pixel_t>(processed->Width, processed->Height, (pixel_t*)(processed->Pixels));
+	std::cout << okH << '\n';
 
-	Daubechies4* db4 = new Daubechies4();
-
-	FluxWaveletDenoising denoiser = FluxWaveletDenoising(db4);
-
-	auto timestamp = BenchmarkHelper::StartWatch();
-	std::vector<WaveletImage<pixel_t>> waveletImages = denoiser.Wavedec(mat);
-	BenchmarkHelper::ShowDurationFinal(timestamp, "Forward 2d dwt");
-	std::cout << waveletImages.size() << '\n';
+	r = 0;
+	g = 0;
+	b = 1;
 
 
-	std::vector<pixel_t> thresholds = std::vector<pixel_t>();
+	Converter::RGB2OKLab(r, g, b, okL, okA, okB);
 
-	pixel_t mul = 0.8f;
-	//Fine details
-	thresholds.push_back(mul * 80.0f  / 100.f);
-	thresholds.push_back(mul * 80.0f  / 100.f);
-	thresholds.push_back(mul * 80.0f  / 100.f);
-	thresholds.push_back(mul * 80.0f  / 100.f);
-	thresholds.push_back(mul * 80.0f  / 100.f);
-	thresholds.push_back(mul * 80.0f  / 100.f);
-	thresholds.push_back(mul * 80.0f  / 100.f);
-	//Large details
-	//thresholds.push_back(0.0f  / 100.f);
-
-
-	auto timestampDenoise = BenchmarkHelper::StartWatch();
-
-	std::vector<WaveletImage<pixel_t>> waveletImagesDenoised = denoiser.ApplyDenoising(waveletImages, thresholds);
-
-	BenchmarkHelper::ShowDurationFinal(timestampDenoise, "Denoising applied");
-
-	auto timestamp2 = BenchmarkHelper::StartWatch();
-	//Matrix<pixel_t> waveletedMatrix = denoiser.Idwt2d(waveletImage);
-	Matrix<pixel_t> waveletedMatrix = denoiser.Waveinv(waveletImagesDenoised);
-	//waveletImage.Dispose();
-	BenchmarkHelper::ShowDurationFinal(timestamp2, "Inverse 2d dwt");
-
-	for (size_t i = 0; i < waveletImages.size(); i++)
+	std::cout << std::endl;
+	//1 degree in oklch = 0.01747 in input i
+	const double lchOffset = 0.453785;
+	const double lchStep = 0.0174534;
+	for (double i = lchOffset; i < lchOffset + 360 * lchStep; i+=lchStep)
 	{
-		waveletImages[i].Dispose(); 
-		waveletImagesDenoised[i].Dispose();
+		double hueV = ((i + M_PI) / (2.0 * M_PI)) ;
+		Converter::OkLCh2OkLab(0.6,0.2, i, okL, okA, okB);
+		Converter::OKLab2RGB(okL, okA, okB, r, g, b);
+		std::cout << hueV * 360 - 206 << " Hue \t" << i << " i \t" << r << " R \t" << g << " G\t" << b << " B\t" << '\n';
 	}
-	waveletImages.clear();
-
-	ImageInput::FreeFluxImage(processed);
-	JpegImageEncoder encoder = JpegImageEncoder(waveletedMatrix);
-	encoder.Init();
-	encoder.FastSave(fileOutput);
+	//Blue 0.5
+	//Red 0 
 	
-	waveletedMatrix.Dispose();
-	db4->Dispose();
-	delete db4;
+
+
+
 	return 0;
 }
