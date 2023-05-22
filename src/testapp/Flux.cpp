@@ -29,7 +29,7 @@ int main()
 
 	auto watcher1 = BenchmarkHelper::StartWatch();
 
-	BoxBlur::Blur(mat, matBlur, 10);
+	BoxBlur::Blur(mat, matBlur, 0);
 
 	BenchmarkHelper::ShowDurationFinal(watcher1, "Box blur took: ");
 

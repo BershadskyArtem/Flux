@@ -30,7 +30,7 @@ void BoxBlur::Blur(Matrix<pixel_t>& input, Matrix<pixel_t>& output, int radius)
 		pixel_t accumulator = 0;
 
 		//Initialize accumulator, shifted one to the left so we can start with subtracting and adding early
-		for (int leftBorder = -radius - 1;  leftBorder < radius; ++leftBorder)
+		for (int leftBorder = -radius - 1;  leftBorder < radius; leftBorder++)
 		{
 			int idx = x + leftBorder;
 
@@ -40,9 +40,8 @@ void BoxBlur::Blur(Matrix<pixel_t>& input, Matrix<pixel_t>& output, int radius)
 			accumulator += inputPixels[startOfLine + idx];
 		}
 
-
 		//Left overhang
-		for (;x <= radius; ++x)
+		for (;x <= radius; x++)
 		{	
 			int leftBorder = x - radius - 1;
 			leftBorder = std::abs(leftBorder + 1);
@@ -55,7 +54,7 @@ void BoxBlur::Blur(Matrix<pixel_t>& input, Matrix<pixel_t>& output, int radius)
 		}
 
 		//Central
-		for (;x < width - radius - 1; ++x) {
+		for (;x < width - radius - 1; x++) {
 			int leftBorder = x - radius - 1;
 			int rightBorder = x + radius;
 			accumulator = accumulator - inputPixels[startOfLine + leftBorder] + inputPixels[startOfLine + rightBorder];
@@ -63,11 +62,11 @@ void BoxBlur::Blur(Matrix<pixel_t>& input, Matrix<pixel_t>& output, int radius)
 		}
 
 		//Right
-		for (;x < width; ++x) {
+		for (;x < width; x++) {
 			int leftBorder = x - radius - 1;
 			int rightBorder = x + radius;
 
-			if (rightBorder >= width - 1) {
+			if (rightBorder >= width) {
 				rightBorder = width - (rightBorder - (width - 1));
 			}
 			accumulator = accumulator - inputPixels[startOfLine + leftBorder] + inputPixels[startOfLine + rightBorder];
@@ -94,7 +93,7 @@ void BoxBlur::Blur(Matrix<pixel_t>& input, Matrix<pixel_t>& output, int radius)
 		}
 
 		//Upper overhang
-		for (; y <= radius; ++y)
+		for (; y <= radius; y++)
 		{
 			int previousElement = y - radius - 1;
 			previousElement = std::abs(previousElement + 1);
@@ -105,26 +104,26 @@ void BoxBlur::Blur(Matrix<pixel_t>& input, Matrix<pixel_t>& output, int radius)
 		}
 
 		//Center
-		for (;y < height - radius - 1; ++y) {
+		for (;y < height - radius - 1; y++) {
 			int previousElement = y - radius - 1;
 			int nextElement = y + radius;
 			accumulator = accumulator - outputPixels[previousElement * width + x] + outputPixels[nextElement * width + x];
 			verticalBuffer[y] = accumulator / divisor;
 		}
 		//Bottom overhang
-		for (; y < height; ++y) {
+		for (; y < height; y++) {
 			int previousElement = y - radius - 1;
 			int nextElement = y + radius;
 
-
 			if (nextElement >= width - 1) {
-				nextElement = width - (nextElement - (width - 1));
+				nextElement = (width - 1) - (nextElement - ((width - 1) - 1));
 			}
+
 			accumulator = accumulator - outputPixels[previousElement * width + x] + outputPixels[nextElement * width + x];
 			verticalBuffer[y] = accumulator / divisor;
 		}
 
-		for (int yBufIdx = 0; yBufIdx < height; ++yBufIdx) {
+		for (int yBufIdx = 0; yBufIdx < height; yBufIdx++) {
 			outputPixels[yBufIdx * width + x] = verticalBuffer[yBufIdx];
 		}
 		delete[] verticalBuffer;
