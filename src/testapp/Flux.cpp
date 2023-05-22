@@ -3,6 +3,7 @@
 #include "../engine/io/Encoders/JpegImageEncoder.h"
 #include "../engine/infrastructure/BenchmarkHelper.h"
 #include "../engine/Core/FluxImageProcessor.h"
+#include "../engine/Core//Filters/BoxBlur.h"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -11,47 +12,37 @@ using namespace std;
 
 int main()
 {
-	Converter::Init();
-	pixel_t r = 1;
-	pixel_t g = 0;
-	pixel_t b = 0;
+	std::string inputFilePath = "C:\\Users\\Artyom\\Downloads\\rectimage1024-1023.jpg";
+	std::string outputFilePath = "C:\\Users\\Artyom\\Downloads\\rectimage1024-1023-Box-Blurred.jpg";
+	ImageInput input = ImageInput(inputFilePath);
 
-	pixel_t okL = 0;
-	pixel_t okA = 0;
-	pixel_t okB = 0;
+	input.Init();
 
-	pixel_t okC = 0;
-	pixel_t okH = 0;
+	FluxImage* image =  input.DecodeImage();
 
+	FluxImageProcessor::Init();
 
-	Converter::RGB2OKLab(r,g,b, okL, okA, okB);
-	Converter::OkLab2OkLCh(okL, okA, okB, okL, okC, okH);
-
-	std::cout << okH << '\n';
-
-	r = 0;
-	g = 0;
-	b = 1;
-
-
-	Converter::RGB2OKLab(r, g, b, okL, okA, okB);
-
-	std::cout << std::endl;
-	//1 degree in oklch = 0.01747 in input i
-	const double lchOffset = 0.453785;
-	const double lchStep = 0.0174534;
-	for (double i = lchOffset; i < lchOffset + 360 * lchStep; i+=lchStep)
-	{
-		double hueV = ((i + M_PI) / (2.0 * M_PI)) ;
-		Converter::OkLCh2OkLab(0.6,0.2, i, okL, okA, okB);
-		Converter::OKLab2RGB(okL, okA, okB, r, g, b);
-		std::cout << hueV * 360 - 206 << " Hue \t" << i << " i \t" << r << " R \t" << g << " G\t" << b << " B\t" << '\n';
-	}
-	//Blue 0.5
-	//Red 0 
+	FluxImage* processed = FluxImageProcessor::DebugProcessToLuma(image);
 	
+	Matrix<pixel_t> mat = Matrix<pixel_t>(image->Width, image->Height, (pixel_t*)processed->Pixels);
+	Matrix<pixel_t> matBlur = Matrix<pixel_t>(image->Width, image->Height);
 
+	auto watcher1 = BenchmarkHelper::StartWatch();
 
+	BoxBlur::Blur(mat, matBlur, 10);
+
+	BenchmarkHelper::ShowDurationFinal(watcher1, "Box blur took: ");
+
+	FluxImage blurred = FluxImage();
+	
+	JpegImageEncoder encoder = JpegImageEncoder(matBlur.GetPointer(), matBlur.Width(), matBlur.Height(), 1);
+	encoder.Init();
+	encoder.FastSave(outputFilePath);
+
+	ImageInput::FreeFluxImage(image);
+	ImageInput::FreeFluxImage(processed);
+	matBlur.Dispose();
+	
 
 	return 0;
 }

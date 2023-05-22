@@ -64,7 +64,7 @@ add_library(FLXCore SHARED
     "Core/ImageOperations/BaseImageOperation.cpp" 
     "Core/ImageOperations/Implementations/CropImageOperation.h" 
     "Core/ImageOperations/Implementations/CropImageOperation.cpp" 
-    "infrastructure/InteropTypes.cpp" "Core/ImageOperations/Implementations/LutImageOperation.h" "infrastructure/FluxMath.h")
+    "infrastructure/InteropTypes.cpp" "Core/ImageOperations/Implementations/LutImageOperation.h" "infrastructure/FluxMath.h" "Core/Filters/BoxBlur.h" "Core/Filters/BoxBlur.cpp")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET FLXCore PROPERTY CXX_STANDARD 20)

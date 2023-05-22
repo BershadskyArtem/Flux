@@ -53,6 +53,8 @@ add_executable (FluxTest
     "../engine/Core/ImageOperations/Implementations/CropImageOperation.h" 
     "../engine/Core/ImageOperations/Implementations/CropImageOperation.cpp" 
     "../engine/infrastructure/InteropTypes.cpp"
+    "../engine/Core/Filters/BoxBlur.cpp"
+    "../engine/Core/Filters/BoxBlur.h"
 )
 
 if ( MSVC )

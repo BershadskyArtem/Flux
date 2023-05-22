@@ -15,6 +15,8 @@ private:
 
 public:
 	static void Init();
+
+	static FluxImage* DebugProcessToLuma(FluxImage* image);
 	static FluxImage* Process(FluxImage* image, ProcessSettings* settings);
 	static ProcessingCache* PreProcess(FluxImage* image, ProcessSettings* settings);
 	static FluxImage* FastProcess(FluxImage* image, ProcessSettings* settings);
