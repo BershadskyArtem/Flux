@@ -3,6 +3,9 @@
 #include "ImageOperations/Implementations/DenoiseImageOperation.h"
 #include "../infrastructure/BenchmarkHelper.h"
 #include "ImageOperations/Implementations/DetailsImageOperation.h"
+#include "ImageOperations/Implementations/WaveletDecomposeImageOperation.h"
+#include "ImageOperations/Implementations/LutImageOperation.h"
+
 
 std::vector<BaseImageOperation*> FluxImageProcessor::s_Operations = std::vector<BaseImageOperation*>();
 
@@ -11,10 +14,11 @@ void FluxImageProcessor::Init()
 	//BaseImageOperation* op = ;
 	s_Operations.push_back(new CropImageOperation());
 	//s_Operations.push(new ResizeImageOperation());
+	s_Operations.push_back(new WaveletDecomposeImageOperation());
 	s_Operations.push_back(new DenoiseImageOperation());
 	//s_Operations.push(new DehazeImageOperation());
 	s_Operations.push_back(new DetailsImageOperation());
-	//s_Operations.push_back(new LutImageOperation());
+	s_Operations.push_back(new LutImageOperation());
 }
 
 FluxImage* FluxImageProcessor::DebugProcessToLuma(FluxImage* image)
@@ -255,14 +259,30 @@ FluxImage* FluxImageProcessor::FastProcessToBitmap(ProcessingCache* cache, Proce
 
 	ProcessSettingsLayer currentLayerSettings = settings->Layers[settings->ChangedLayer];
 
-	int correctionPipelineLength = 1;
+	//int correctionPipelineLength = 1;
 	for (int i = correctionStage; i < s_Operations.size(); i++)
 	{
 		BaseImageOperation* op = s_Operations[i];
 		op->Run(&currentLayer.Caches[i-1], &currentLayer.Caches[i], &currentLayerSettings);
 	}
 
-	return nullptr;
+	//Must be Internal image data
+	InternalImageData* lastCache = (InternalImageData*)currentLayer.Caches[s_Operations.size() - 1].Caches;
+
+	pixel_t* rgbOut = new pixel_t[lastCache->Width * lastCache->Height * 3];
+
+	PixelsHelper::Interleave3(lastCache->RPixels, lastCache->GPixels, lastCache->BPixels, rgbOut, lastCache->Width, lastCache->Height);
+
+	FluxImage* result = new FluxImage();
+
+	result->ChannelsCount = 3;
+	result->Width = lastCache->Width;
+	result->Height = lastCache->Height;
+	result->Pixels = rgbOut;
+	
+	//When we got all we need
+
+	return result;
 }
 
 void FluxImageProcessor::DisposeLayer(ProcessingLayerCache* layer)

@@ -1,7 +1,7 @@
 #include "DetailsImageOperation.h"
 
-std::vector<pixel_t> DetailsImageOperation::s_SharpenMultipliers = { 0.75,1.0,0.3,0.15 };
-std::vector<pixel_t> DetailsImageOperation::s_TextureMultipliers = { 0.3,0.3,0.8,0.8 };
+std::vector<pixel_t> DetailsImageOperation::s_SharpenMultipliers = { 1,1,1,1 };
+std::vector<pixel_t> DetailsImageOperation::s_TextureMultipliers = { 1,1,1,1 };
 
 WaveletImage<pixel_t>* DetailsImageOperation::ApplyToLevel(WaveletImage<pixel_t> &image, pixel_t value)
 {

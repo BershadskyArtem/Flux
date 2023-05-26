@@ -2,11 +2,12 @@
 
 pixel_t LutImageOperation::GetBrightnessUsingColorMask(pixel_t l, pixel_t a, pixel_t b, HSLColorProcessingSettings& settings)
 {
-	pixel_t result = 0.0f;
-	settings.
+	//pixel_t result = 0.0f;
+	//settings.
 
 
-	return pixel_t();
+		//return pixel_t();
+	return 0.0f;
 }
 
 void LutImageOperation::ElevateBrightness(pixel_t l, pixel_t a, pixel_t b, LUTProcessingSettings& settings)
@@ -29,16 +30,9 @@ void LutImageOperation::ElevateBrightness(pixel_t l, pixel_t a, pixel_t b, LUTPr
 	pixel_t contrast = settings.LightSettings.Contrast / 100.f;
 	pixel_t contrastCurveAtPoint = FluxMath::ContrastSmoothstep(currentLuma);
 	FluxMath::LinearInterpolate(contrast, contrastCurveAtPoint, currentLuma);
-	settings.HSLSettings.
+	//settings.HSLSettings.
 	//HSL
-	pixel_t GetBrightnessUsingColorMask(pixel_t l, pixel_t a, pixel_t b, settings);
-
-
-
-
-
-
-
+	//pixel_t v = GetBrightnessUsingColorMask(pixel_t l, pixel_t a, pixel_t b, settings);
 
 }
 
@@ -48,13 +42,39 @@ ProcessingCacheEntry* LutImageOperation::Run(ProcessingCacheEntry* previousCache
 	if (currentCachedStage == nullptr) {
 		currentCachedStage = new ProcessingCacheEntry();
 	}
+
 	if (currentCachedStage->Caches == nullptr) {
 		currentCachedStage->Caches = new InternalLabImage();
 		currentCachedStage->CachesCount = 1;
 	}
+
+	InternalImageData* previousCache = (InternalImageData*)previousCachedStage->Caches;
+
+	InternalLabImage* labImage = (InternalLabImage*)currentCachedStage->Caches;
+
+	if (labImage->LPixels == nullptr) {
+		labImage->LPixels = new pixel_t[previousCache->Width * previousCache->Height];
+	}
+
+	if (labImage->APixels == nullptr) {
+		labImage->APixels = new pixel_t[previousCache->Width * previousCache->Height];
+	}
+
+	if (labImage->BPixels == nullptr) {
+		labImage->BPixels = new pixel_t[previousCache->Width * previousCache->Height];
+	}
+	labImage->Width = previousCache->Width;
+	labImage->Height = previousCache->Height;
+
 	//Refill cache
-	LUTf3d* lut = new LUTf3d();
-	lut->Init(LUT_DIM, LUT_DIM, LUT_DIM);
+	LUTf3d* lutL = new LUTf3d();
+	lutL->Init(LUT_DIM, LUT_DIM, LUT_DIM);
+
+	LUTf3d* lutA = new LUTf3d();
+	lutA->Init(LUT_DIM, LUT_DIM, LUT_DIM);
+
+	LUTf3d* lutB = new LUTf3d();
+	lutB->Init(LUT_DIM, LUT_DIM, LUT_DIM);
 
 	LUTProcessingSettings& settings = newSettings->LUT;
 
@@ -68,10 +88,23 @@ ProcessingCacheEntry* LutImageOperation::Run(ProcessingCacheEntry* previousCache
 				pixel_t aF = a / LUT_DIM;
 				pixel_t bF = b / LUT_DIM;
 
-				ElevateBrightness(lF, aF, bF, settings);
+				pixel_t rV = 0;
+				pixel_t gV = 0;
+				pixel_t bV = 0;
+
+				Converter::OKLab2RGB(lF, aF, bF, rV, gV, bV);
+
+				//ElevateBrightness(lF, aF, bF, settings);
+
+				lutL->SetValue(rV, l, a, b);
+				lutA->SetValue(gV, l, a, b);
+				lutB->SetValue(bV, l, a, b);
 			}
 		}
 	}
+
+	//Apply 3D luts 
+	LUTf3d::ApplyLUTs(previousCache->RPixels, previousCache->GPixels, previousCache->BPixels, labImage->LPixels, labImage->APixels, labImage->BPixels, *lutL, *lutA, *lutB, labImage->Width, labImage->Height);
 
 
 	/*LUT
@@ -83,19 +116,11 @@ ProcessingCacheEntry* LutImageOperation::Run(ProcessingCacheEntry* previousCache
 		Levels
 		Curve
 		Tonning
-
-
 	*/
 
+	currentCachedStage->Caches = labImage;
 
-
-
-
-
-
-
-
-	return nullptr;
+	return currentCachedStage;
 }
 
 void LutImageOperation::Dispose()

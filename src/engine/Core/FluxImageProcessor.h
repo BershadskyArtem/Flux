@@ -5,6 +5,7 @@
 #include "../Color/ColorLUTConverter.h"
 #include "../infrastructure/InteropTypes.h"
 #include "../infrastructure/PixelsHelper.h"
+#include "../Core/ImageOperations/BaseImageOperation.h"
 #include "../infrastructure/Matrix.h"
 #include "Wavelets/Daubechies4.h"
 #include "FluxWaveletDenoising.h"

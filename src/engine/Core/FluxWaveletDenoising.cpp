@@ -400,7 +400,7 @@ std::vector<WaveletImage<pixel_t>> FluxWaveletDenoising::Wavedec(Matrix<pixel_t>
 	int depth = 1;
 	Matrix<pixel_t>* currentMatrix = &input;
 
-	while (currentMatrix->Width() >= _waveletData->Size && currentMatrix->Height() >= _waveletData->Size && depth < 7)
+	while (currentMatrix->Width() >= _waveletData->Size && currentMatrix->Height() >= _waveletData->Size && depth < 5)
 	{
 		depth++;
 		WaveletImage<pixel_t> dwt = Dwt2d(*currentMatrix);

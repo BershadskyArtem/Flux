@@ -72,3 +72,7 @@ ProcessingCacheEntry* DenoiseImageOperation::Run(ProcessingCacheEntry* previousC
 
     return currentCachedStage;
 }
+
+void DenoiseImageOperation::Dispose()
+{
+}
