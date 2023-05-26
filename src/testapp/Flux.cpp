@@ -26,6 +26,7 @@ int main()
 	
 	//Matrix<pixel_t> mat = Matrix<pixel_t>(image->Width, image->Height, (pixel_t*)processed->Pixels);
 
+	ColorLUTConverter::Init();
 
 	ProcessSettings set = ProcessSettings();
 	set.Layers = new ProcessSettingsLayer[1]{};

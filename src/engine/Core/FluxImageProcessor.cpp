@@ -240,7 +240,7 @@ FluxImage* FluxImageProcessor::FastProcessToBitmap(ProcessingCache* cache, Proce
 	int changedLayer = settings->ChangedLayer;
 
 	//Dispose all useless layers
-	for (int i = cache->LayersCount; i > changedLayer; i--)
+	for (int i = cache->LayersCount - 1; i > changedLayer; i--)
 	{
 		ProcessingLayerCache& layer = cache->Layers[i];
 		DisposeLayer(&layer);
