@@ -1,7 +1,7 @@
 #pragma once
+#include <vector>
 #include "FLXDefines.h"
 #include "../Core/WaveletImage.h"
-
 
 
 struct InternalImageData;
@@ -404,7 +404,15 @@ struct ProcessingCacheEntry {
 //};
 
 
-struct DenoiseCache {
+struct WaveletCache {
     int WaveletDecCount;
-    WaveletImage<pixel_t>* WaveletDec;
+    std::vector<WaveletImage<pixel_t>>* LDec;
+    std::vector<WaveletImage<pixel_t>>* ADec;
+    std::vector<WaveletImage<pixel_t>>* BDec;
+};
+
+struct DenoiseCache {
+    std::vector<WaveletImage<pixel_t>>* LDec;
+    std::vector<WaveletImage<pixel_t>>* ADec;
+    std::vector<WaveletImage<pixel_t>>* BDec;
 };

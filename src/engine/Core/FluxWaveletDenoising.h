@@ -22,7 +22,7 @@ protected:
 	pixel_t _min;
 
 
-	void ApplyThreshold(Matrix<pixel_t> &mat, pixel_t &threshold);
+	static void ApplyThreshold(Matrix<pixel_t> &mat, pixel_t &threshold);
 
 public:
 
@@ -66,7 +66,7 @@ public:
 
 	Matrix<pixel_t> Waveinv(std::vector<WaveletImage<pixel_t>> &input);
 
-	std::vector<WaveletImage<pixel_t>> ApplyDenoising(std::vector<WaveletImage<pixel_t>> &input, std::vector<pixel_t> &thresholdValues);
+	static std::vector<WaveletImage<pixel_t>>* ApplyDenoising(std::vector<WaveletImage<pixel_t>> &input, std::vector<pixel_t> &thresholdValues);
 
 	~FluxWaveletDenoising();
 };

@@ -12,8 +12,8 @@ using namespace std;
 
 int main()
 {
-	std::string inputFilePath = "C:\\Users\\Artyom\\Downloads\\rectimage1024-1023.jpg";
-	std::string outputFilePath = "C:\\Users\\Artyom\\Downloads\\rectimage1024-1023-Box-Blurred.jpg";
+	std::string inputFilePath = "C:\\Users\\Artyom\\Downloads\\Lena.jpg";
+	std::string outputFilePath = "C:\\Users\\Artyom\\Downloads\\Lena-Box-Blurred.jpg";
 	ImageInput input = ImageInput(inputFilePath);
 
 	input.Init();
@@ -29,11 +29,11 @@ int main()
 
 	auto watcher1 = BenchmarkHelper::StartWatch();
 
-	BoxBlur::Blur(mat, matBlur, 0);
+	BoxBlur::Blur(mat, matBlur, 1);
 
 	BenchmarkHelper::ShowDurationFinal(watcher1, "Box blur took: ");
 
-	FluxImage blurred = FluxImage();
+	//FluxImage blurred = FluxImage();
 	
 	JpegImageEncoder encoder = JpegImageEncoder(matBlur.GetPointer(), matBlur.Width(), matBlur.Height(), 1);
 	encoder.Init();
@@ -43,6 +43,5 @@ int main()
 	ImageInput::FreeFluxImage(processed);
 	matBlur.Dispose();
 	
-
 	return 0;
 }

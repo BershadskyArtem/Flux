@@ -1,16 +1,21 @@
 #include "FluxImageProcessor.h"
 #include "ImageOperations/Implementations/CropImageOperation.h"
+#include "ImageOperations/Implementations/DenoiseImageOperation.h"
 #include "../infrastructure/BenchmarkHelper.h"
+
+
+std::stack<BaseImageOperation*> FluxImageProcessor::s_Operations = std::stack<BaseImageOperation*>();
 
 void FluxImageProcessor::Init()
 {
-	//s_Operations.push(new CropImageOperation());
+	//BaseImageOperation* op = ;
+	s_Operations.push(new CropImageOperation());
 	//s_Operations.push(new ResizeImageOperation());
-	//s_Operations.push(new DenoiseImageOperation());
+	s_Operations.push(new DenoiseImageOperation());
 	//s_Operations.push(new DehazeImageOperation());
-	//s_Operations.push(new ClarityImageOperation());
-	//s_Operations.push(new TextureImageOperation());
-	//s_Operations.push(new LutImageOperation());
+	s_Operations.push(new ClarityImageOperation());
+	s_Operations.push(new TextureImageOperation());
+	s_Operations.push(new LutImageOperation());
 }
 
 FluxImage* FluxImageProcessor::DebugProcessToLuma(FluxImage* image)

@@ -11,7 +11,7 @@
 
 class FluxImageProcessor {
 private:
-	//static std::stack<BaseImageOperation*> s_Operations;
+	static std::stack<BaseImageOperation*> s_Operations;
 
 public:
 	static void Init();

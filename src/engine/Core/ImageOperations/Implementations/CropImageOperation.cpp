@@ -89,4 +89,4 @@ void CropImageOperation::Dispose()
 }
 
 
-CropImageOperation u_Operation;
+//CropImageOperation u_Operation;

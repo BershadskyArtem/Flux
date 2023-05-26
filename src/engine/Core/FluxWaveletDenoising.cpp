@@ -440,9 +440,9 @@ Matrix<pixel_t> FluxWaveletDenoising::Waveinv(std::vector<WaveletImage<pixel_t>>
 }
 
 
-std::vector<WaveletImage<pixel_t>> FluxWaveletDenoising::ApplyDenoising(std::vector<WaveletImage<pixel_t>>& input, std::vector<pixel_t>& thresholdValues) {
-	std::vector<WaveletImage<pixel_t>> result = std::vector<WaveletImage<pixel_t>>();
-	result.reserve(input.size());
+std::vector<WaveletImage<pixel_t>>* FluxWaveletDenoising::ApplyDenoising(std::vector<WaveletImage<pixel_t>>& input, std::vector<pixel_t>& thresholdValues) {
+	std::vector<WaveletImage<pixel_t>>* result = new std::vector<WaveletImage<pixel_t>>();
+	result->reserve(input.size());
 
 	for (int i = 0; i < input.size() && i < thresholdValues.size(); ++i)
 	{
@@ -457,7 +457,7 @@ std::vector<WaveletImage<pixel_t>> FluxWaveletDenoising::ApplyDenoising(std::vec
 			ApplyThreshold(*coppiedImage.CH, threshold);
 			ApplyThreshold(*coppiedImage.CV, threshold);
 		}
-		result.push_back(coppiedImage);
+		result->push_back(coppiedImage);
 	}
 
 	return result;
@@ -473,6 +473,7 @@ void FluxWaveletDenoising::ApplyThreshold(Matrix<pixel_t>& mat, pixel_t& thresho
 	int inc = vfloat::size;
 	vfloat thrVSqr = threshold * threshold;
 	vfloat thrV = threshold * threshold;
+	vfloat zeroV = 0.f;
 	//Apply Garrote thesholding
 	//https://github.com/PyWavelets/pywt/blob/4591748823f2259844b6b3de0ddf60d1a85a6fa7/pywt/_thresholding.py
 	//https://github.com/PyWavelets/pywt/pull/354
@@ -493,7 +494,7 @@ void FluxWaveletDenoising::ApplyThreshold(Matrix<pixel_t>& mat, pixel_t& thresho
 			vfloat absvalues = xsimd::abs(values);
 			vfloat nn_garrote = values * (1 - (thrVSqr / absvalues * absvalues));
 			auto maskThr = xsimd::ge(absvalues, thrV);
-			values = xsimd::select(maskThr, nn_garrote, _zeroV);
+			values = xsimd::select(maskThr, nn_garrote, zeroV);
 			values.store_aligned(&currentPixels[index]);
 			
 		}
