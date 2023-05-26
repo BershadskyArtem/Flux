@@ -2,20 +2,19 @@
 #include "ImageOperations/Implementations/CropImageOperation.h"
 #include "ImageOperations/Implementations/DenoiseImageOperation.h"
 #include "../infrastructure/BenchmarkHelper.h"
+#include "ImageOperations/Implementations/DetailsImageOperation.h"
 
-
-std::stack<BaseImageOperation*> FluxImageProcessor::s_Operations = std::stack<BaseImageOperation*>();
+std::vector<BaseImageOperation*> FluxImageProcessor::s_Operations = std::vector<BaseImageOperation*>();
 
 void FluxImageProcessor::Init()
 {
 	//BaseImageOperation* op = ;
-	s_Operations.push(new CropImageOperation());
+	s_Operations.push_back(new CropImageOperation());
 	//s_Operations.push(new ResizeImageOperation());
-	s_Operations.push(new DenoiseImageOperation());
+	s_Operations.push_back(new DenoiseImageOperation());
 	//s_Operations.push(new DehazeImageOperation());
-	s_Operations.push(new ClarityImageOperation());
-	s_Operations.push(new TextureImageOperation());
-	s_Operations.push(new LutImageOperation());
+	s_Operations.push_back(new DetailsImageOperation());
+	//s_Operations.push_back(new LutImageOperation());
 }
 
 FluxImage* FluxImageProcessor::DebugProcessToLuma(FluxImage* image)
@@ -141,6 +140,8 @@ ProcessingCache* FluxImageProcessor::PreProcess(FluxImage* image, ProcessSetting
 	Matrix<pixel_t> gMat = Matrix<pixel_t>(image->Width, image->Height, pixelsG);
 	Matrix<pixel_t> bMat = Matrix<pixel_t>(image->Width, image->Height, pixelsB);
 
+	ColorLUTConverter::ConvertToLab(rMat.GetPointer(), gMat.GetPointer(), bMat.GetPointer(), rMat.GetPointer(), gMat.GetPointer(), bMat.GetPointer(), rMat.Width(), rMat.Height());
+
 	//Color manage 
 	//I don't have time to handle any camera out there
 
@@ -252,15 +253,14 @@ FluxImage* FluxImageProcessor::FastProcessToBitmap(ProcessingCache* cache, Proce
 		DisposeStageCache(&currentLayer.Caches[i]);
 	}
 
-	
+	ProcessSettingsLayer currentLayerSettings = settings->Layers[settings->ChangedLayer];
+
 	int correctionPipelineLength = 1;
-	for (int i = correctionStage; i < correctionPipelineLength; i++)
+	for (int i = correctionStage; i < s_Operations.size(); i++)
 	{
-		//BaseImageOperation* op = 
+		BaseImageOperation* op = s_Operations[i];
+		op->Run(&currentLayer.Caches[i-1], &currentLayer.Caches[i], &currentLayerSettings);
 	}
-
-
-
 
 	return nullptr;
 }
@@ -315,12 +315,22 @@ void FluxImageProcessor::DisposeStageCache(ProcessingCacheEntry* entry)
 		
 
 	case ProcessingStage::Denoise: {
-		DenoiseCache* cache = (DenoiseCache*)entry->Caches;
+		WaveletCache* cache = (WaveletCache*)entry->Caches;
 		for (int i = 0; i < cache->WaveletDecCount; i++)
 		{
-			WaveletImage<pixel_t> waveletImage = cache->WaveletDec[i];
-			waveletImage.Dispose();
+			cache->LDec->at(i).Dispose();
+			cache->ADec->at(i).Dispose();
+			cache->BDec->at(i).Dispose();
+			
 		}
+		cache->LDec->clear();
+		cache->ADec->clear();
+		cache->BDec->clear();
+		
+		delete cache->LDec;
+		delete cache->ADec;
+		delete cache->BDec;
+
 		delete cache;
 		return;
 	}
@@ -336,21 +346,45 @@ void FluxImageProcessor::DisposeStageCache(ProcessingCacheEntry* entry)
 	}
 		
 	case ProcessingStage::Clarity: {
-		InternalLabImage* imageClarified = (InternalLabImage*)entry->Caches;
-		delete[] imageClarified->LPixels;
-		delete[] imageClarified->APixels;
-		delete[] imageClarified->BPixels;
-		delete imageClarified;
+		WaveletCache* cache = (WaveletCache*)entry->Caches;
+		for (int i = 0; i < cache->WaveletDecCount; i++)
+		{
+			cache->LDec->at(i).Dispose();
+			cache->ADec->at(i).Dispose();
+			cache->BDec->at(i).Dispose();
+
+		}
+		cache->LDec->clear();
+		cache->ADec->clear();
+		cache->BDec->clear();
+
+		delete cache->LDec;
+		delete cache->ADec;
+		delete cache->BDec;
+
+		delete cache;
 		return;
 	}
 		
 
 	case ProcessingStage::Texture: {
-		InternalLabImage* imageTextured = (InternalLabImage*)entry->Caches;
-		delete[] imageTextured->LPixels;
-		delete[] imageTextured->APixels;
-		delete[] imageTextured->BPixels;
-		delete imageTextured;
+		WaveletCache* cache = (WaveletCache*)entry->Caches;
+		for (int i = 0; i < cache->WaveletDecCount; i++)
+		{
+			cache->LDec->at(i).Dispose();
+			cache->ADec->at(i).Dispose();
+			cache->BDec->at(i).Dispose();
+
+		}
+		cache->LDec->clear();
+		cache->ADec->clear();
+		cache->BDec->clear();
+
+		delete cache->LDec;
+		delete cache->ADec;
+		delete cache->BDec;
+
+		delete cache;
 		return;
 	}
 		

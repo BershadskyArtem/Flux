@@ -52,6 +52,8 @@ add_executable (FluxTest
     "../engine/Core/ImageOperations/BaseImageOperation.cpp" 
     "../engine/Core/ImageOperations/Implementations/CropImageOperation.h" 
     "../engine/Core/ImageOperations/Implementations/CropImageOperation.cpp" 
+    "../engine/Core/ImageOperations/Implementations/DetailsImageOperation.cpp" 
+    "../engine/Core/ImageOperations/Implementations/DetailsImageOperation.h" 
     "../engine/infrastructure/InteropTypes.cpp"
     "../engine/Core/Filters/BoxBlur.cpp"
     "../engine/Core/Filters/BoxBlur.h"

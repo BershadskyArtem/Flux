@@ -24,7 +24,7 @@ ProcessingCacheEntry* DenoiseImageOperation::Run(ProcessingCacheEntry* previousC
         copiedChrominanceThresholds[i] *= chrominanceDenoising;
     }
     
-    DenoiseCache* denoiseCache = (DenoiseCache*)currentCachedStage->Caches;
+    WaveletCache* denoiseCache = (WaveletCache*)currentCachedStage->Caches;
 
     //Dispose cache
     if (denoiseCache != nullptr) {
@@ -63,7 +63,7 @@ ProcessingCacheEntry* DenoiseImageOperation::Run(ProcessingCacheEntry* previousC
     std::vector<WaveletImage<pixel_t>>* denoisedA = FluxWaveletDenoising::ApplyDenoising(*cache->ADec, copiedChrominanceThresholds);
     std::vector<WaveletImage<pixel_t>>* denoisedB = FluxWaveletDenoising::ApplyDenoising(*cache->BDec, copiedChrominanceThresholds);
 
-    denoiseCache = new DenoiseCache();
+    denoiseCache = new WaveletCache();
     denoiseCache->LDec = denoisedL;
     denoiseCache->ADec = denoisedA;
     denoiseCache->BDec = denoisedB;

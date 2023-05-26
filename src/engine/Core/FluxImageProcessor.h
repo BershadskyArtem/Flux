@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <stack>
+#include <vector>
 #include "../Color/ColorLUTConverter.h"
 #include "../infrastructure/InteropTypes.h"
 #include "../infrastructure/PixelsHelper.h"
@@ -11,7 +12,7 @@
 
 class FluxImageProcessor {
 private:
-	static std::stack<BaseImageOperation*> s_Operations;
+	static std::vector<BaseImageOperation*> s_Operations;
 
 public:
 	static void Init();

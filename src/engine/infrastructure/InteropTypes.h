@@ -411,8 +411,3 @@ struct WaveletCache {
     std::vector<WaveletImage<pixel_t>>* BDec;
 };
 
-struct DenoiseCache {
-    std::vector<WaveletImage<pixel_t>>* LDec;
-    std::vector<WaveletImage<pixel_t>>* ADec;
-    std::vector<WaveletImage<pixel_t>>* BDec;
-};

@@ -42,7 +42,7 @@ ProcessingCacheEntry* CropImageOperation::Run(ProcessingCacheEntry* previousCach
 
 	int inc = vfloat::size;
 
-//#pragma omp parallel for
+#pragma omp parallel for
 	for (int y = cropHeightIdy1; y < cropHeightIdy2; y++)
 	{
 		int startOfLineWithoutCrop = y * width;
