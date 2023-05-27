@@ -22,10 +22,30 @@ ProcessingCacheEntry* WaveletComposeImageOperation::Run(ProcessingCacheEntry* pr
 
 	FluxWaveletDenoising denoiser = FluxWaveletDenoising(db4);
 
+	//std::vector<std::vector<WaveletImage<pixel_t>>> arrIn = std::vector<std::vector<WaveletImage<pixel_t>>>();
+	//std::vector<Matrix<pixel_t>> arrOut = std::vector<Matrix<pixel_t>>();
+	//
+	//arrIn.push_back(*prevCache->LDec);
+	//arrIn.push_back(*prevCache->ADec);
+	//arrIn.push_back(*prevCache->BDec);
+	//arrOut.resize(3);
+	//
+	////Dirty gives about 30% boost in speed
+	//#pragma omp parallel for
+	//for (int i = 0; i < 3; i++)
+	//{
+	//	arrOut[i] = denoiser.Waveinv(arrIn[i]);
+	//}
+
+	//arrIn[0] = &prevCache->LDec;
+
 	Matrix<pixel_t> lMat = denoiser.Waveinv(*prevCache->LDec);
 	Matrix<pixel_t> aMat = denoiser.Waveinv(*prevCache->ADec);
 	Matrix<pixel_t> bMat = denoiser.Waveinv(*prevCache->BDec);
 
+	//Matrix<pixel_t> lMat = arrOut[0];
+	//Matrix<pixel_t> aMat = arrOut[1];
+	//Matrix<pixel_t> bMat = arrOut[2];
 
 
 	result->LPixels = lMat.GetPointer();

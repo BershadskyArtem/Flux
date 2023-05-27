@@ -268,7 +268,9 @@ FluxImage* FluxImageProcessor::FastProcessToBitmap(ProcessingCache* cache, Proce
 	for (int i = correctionStage; i < s_Operations.size(); i++)
 	{
 		BaseImageOperation* op = s_Operations[i];
+		auto watcher = BenchmarkHelper::StartWatch();
 		ProcessingCacheEntry* newCache = op->Run(&currentLayer.Caches[std::max(i - 1, 0)], &currentLayer.Caches[i], &currentLayerSettings);
+		BenchmarkHelper::ShowDurationFinal(watcher, "Time for item" + std::to_string(i) + " took... ");
 		//No need to delete old cache because operation handles that for me 
 		currentLayer.Caches[i] = *newCache;
 	}
@@ -286,6 +288,7 @@ FluxImage* FluxImageProcessor::FastProcessToBitmap(ProcessingCache* cache, Proce
 	result->Width = lastCache->Width;
 	result->Height = lastCache->Height;
 	result->Pixels = rgbOut;
+	result->Type = PixelType::Float;
 
 	//When we got all we need
 

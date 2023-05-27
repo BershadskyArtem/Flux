@@ -11,6 +11,7 @@ private:
 public:
 	Matrix(int width, int height);
 	Matrix(int width, int height, T* value);
+	Matrix();
 	~Matrix();
 	T* GetPointer(int start = 0);
 	T* GetPointer(int idx, int idy);

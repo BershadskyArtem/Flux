@@ -15,6 +15,14 @@ Matrix<T>::Matrix(int width, int height, T* value)
 	this->m_Values = value;
 }
 
+template<typename T>
+Matrix<T>::Matrix()
+{
+	m_Width = 0;
+	m_Height = 0;
+	m_Values = nullptr;
+}
+
 
 template<typename T>
 Matrix<T>* Matrix<T>::Copy()

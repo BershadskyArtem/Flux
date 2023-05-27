@@ -14,9 +14,9 @@ int main()
 {
 	ColorLUTConverter::Init();
 	FluxImageProcessor::Init();
-	std::string inputFilePath = "C:\\Users\\Artyom\\Downloads\\Lena.jpg";
-	std::string outputFilePath = "C:\\Users\\Artyom\\Downloads\\Lena-Pipeline-Test.jpg";
-	std::string outputFilePath2 = "C:\\Users\\Artyom\\Downloads\\Lena-RGB.jpg";
+	std::string inputFilePath = "C:\\Users\\Artyom\\Downloads\\rectimage1023-1024.jpg";
+	
+	std::string outputFilePath = "C:\\Users\\Artyom\\Downloads\\rectimage1023-1024-Pipeline.jpg";
 	ImageInput input = ImageInput(inputFilePath);
 
 	input.Init();
@@ -30,14 +30,14 @@ int main()
 	//FluxImage* processed = FluxImageProcessor::DebugProcessToLuma(image);
 	
 	//Matrix<pixel_t> mat = Matrix<pixel_t>(image->Width, image->Height, (pixel_t*)processed->Pixels);
-
+	std::cout << std::endl;
 	ProcessSettings set = ProcessSettings();
 	set.Layers = new ProcessSettingsLayer[1]{};
 	set.Layers[0] = ProcessSettingsLayer();
 	set.Layers[0].Crop.LeftUpX = 0;
 	set.Layers[0].Crop.LeftUpY = 0;
-	set.Layers[0].Crop.RightDownX = 512;
-	set.Layers[0].Crop.RightDownY = 512;
+	set.Layers[0].Crop.RightDownX = 1000;
+	set.Layers[0].Crop.RightDownY = 1000;
 	set.Layers[0].Denoise.Chrominance = 0;
 	//Max 40
 	set.Layers[0].Denoise.Luminance = 20;
@@ -55,11 +55,17 @@ int main()
 	BenchmarkHelper::ShowDurationFinal(fastProcessFromGround, "Fast processing from ground up took... ");
 
 
-	JpegImageEncoder encoder = JpegImageEncoder((pixel_t*)processedImage->Pixels, processedImage->Width, processedImage->Height, 3);
+	set.ChangedStage = ProcessingStage::Lut;
+	auto lutOnlyStage = BenchmarkHelper::StartWatch();
+	FluxImage* processedImage2 = FluxImageProcessor::FastProcessToBitmap(cache, &set);
+	BenchmarkHelper::ShowDurationFinal(lutOnlyStage, "Lut only fast processing stage took... ");
+
+	JpegImageEncoder encoder = JpegImageEncoder((pixel_t*)processedImage2->Pixels, processedImage2->Width, processedImage2->Height, 3);
 	encoder.Init();
 	encoder.FastSave(outputFilePath);
 	ImageInput::FreeFluxImage(image);
 	ImageInput::FreeFluxImage(processedImage);
+	ImageInput::FreeFluxImage(processedImage2);
 
 	return 0;
 }

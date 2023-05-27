@@ -1,4 +1,6 @@
 #pragma once
+#include <array>
+#include <vector>
 #include "../BaseImageOperation.h"
 #include "../../../infrastructure/FLXDefines.h"
 #include "../../FluxWaveletDenoising.h"
