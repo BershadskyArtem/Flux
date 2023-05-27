@@ -108,10 +108,10 @@ ProcessingCacheEntry* LutImageOperation::Run(ProcessingCacheEntry* previousCache
 		}
 	}
 
-	std::string outputFilePath1 = "C:\\Users\\Artyom\\Downloads\\Lena-B-End.jpg";
-	JpegImageEncoder encoder2 = JpegImageEncoder((pixel_t*)previousCache->BPixels, w, h, 1);
-	encoder2.Init();
-	encoder2.FastSave(outputFilePath1);
+	//std::string outputFilePath1 = "C:\\Users\\Artyom\\Downloads\\Lena-B-End.jpg";
+	//JpegImageEncoder encoder2 = JpegImageEncoder((pixel_t*)previousCache->BPixels, w, h, 1);
+	//encoder2.Init();
+	//encoder2.FastSave(outputFilePath1);
 
 	pixel_t* rPix = new pixel_t[w * h]{};
 	pixel_t* gPix = new pixel_t[w * h]{};
@@ -119,10 +119,10 @@ ProcessingCacheEntry* LutImageOperation::Run(ProcessingCacheEntry* previousCache
 
 	Converter::OKLab2RGB(previousCache->LPixels, previousCache->APixels, previousCache->BPixels, rPix, gPix, bPix, w, h);
 	
-	std::string outputFilePath2 = "C:\\Users\\Artyom\\Downloads\\Lena-R.jpg";
-	JpegImageEncoder encoder1 = JpegImageEncoder((pixel_t*)rPix, w, h, 1);	
-	encoder1.Init();
-	encoder1.FastSave(outputFilePath2);
+	//std::string outputFilePath2 = "C:\\Users\\Artyom\\Downloads\\Lena-R.jpg";
+	//JpegImageEncoder encoder1 = JpegImageEncoder((pixel_t*)rPix, w, h, 1);	
+	//encoder1.Init();
+	//encoder1.FastSave(outputFilePath2);
 
 
 

@@ -1,7 +1,9 @@
 #include "DetailsImageOperation.h"
 
-std::vector<pixel_t> DetailsImageOperation::s_SharpenMultipliers = { 0.5f, 0.5f ,0.5f ,0.5f };
-std::vector<pixel_t> DetailsImageOperation::s_TextureMultipliers = { 0.5f, 0.5f ,0.5f ,0.5f };
+//1.6, 1.3, 1.0, 1.0
+//1.0f ,1.0f ,1.225f ,1.125f
+std::vector<pixel_t> DetailsImageOperation::s_SharpenMultipliers = { 1.6f ,1.3f ,1.0f ,1.0f };
+std::vector<pixel_t> DetailsImageOperation::s_TextureMultipliers = { 1.0f ,1.0f ,1.225f ,1.125f };
 
 WaveletImage<pixel_t>* DetailsImageOperation::ApplyToLevel(WaveletImage<pixel_t>& image, pixel_t value)
 {
@@ -99,9 +101,10 @@ WaveletImage<pixel_t>* DetailsImageOperation::ApplyToLevel(WaveletImage<pixel_t>
 
 ProcessingCacheEntry* DetailsImageOperation::Run(ProcessingCacheEntry* previousCachedStage, ProcessingCacheEntry* currentCachedStage, ProcessSettingsLayer* newSettings)
 {
-	int sharpen = newSettings->Clarity.Amount;
-	int texture = newSettings->Texture.Amount;
-
+	pixel_t sharpen = newSettings->Clarity.Amount / 100.f;
+	pixel_t texture = newSettings->Texture.Amount / 100.f;
+	sharpen -= 1;
+	texture -= 1;
 
 	//Current cache is useless
 	WaveletCache* cacheToDelete = (WaveletCache*)currentCachedStage->Caches;
@@ -153,7 +156,13 @@ ProcessingCacheEntry* DetailsImageOperation::Run(ProcessingCacheEntry* previousC
 	//Apply texture and sharpen
 	for (int i = 0; i < depthToApply; i++)
 	{
-		pixel_t multiplier = sharpen * s_SharpenMultipliers[i] + texture * s_TextureMultipliers[i];
+		//pixel_t multiplier = sharpen * s_SharpenMultipliers[i] + texture * s_TextureMultipliers[i];
+
+		//pixel_t multiplier = s_SharpenMultipliers[i] * sharpen + s_TextureMultipliers[i] * texture;
+		// 
+		//pixel_t multiplier = FluxMath::LinearInterpolate(sharpen, s_SharpenMultipliers[i], 1.0f);
+		pixel_t multiplier = FluxMath::LinearInterpolate(texture, s_TextureMultipliers[i], 1.0f);
+		multiplier *= FluxMath::LinearInterpolate(sharpen, s_SharpenMultipliers[i], 1.0f);
 		WaveletImage<pixel_t>* enhancedL = ApplyToLevel(cache->LDec->at(i), multiplier);
 		newCache->LDec->push_back(*enhancedL);
 	}

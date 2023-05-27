@@ -3,7 +3,7 @@
 #include "../../../infrastructure/FLXDefines.h"
 #include "../../FluxWaveletDenoising.h"
 #include "../../Wavelets/Daubechies4.h"
-
+#include "../../../infrastructure/FluxMath.h"
 
 class DenoiseImageOperation : public BaseImageOperation {
 protected:

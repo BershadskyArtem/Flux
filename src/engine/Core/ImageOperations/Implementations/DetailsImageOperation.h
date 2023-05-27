@@ -4,7 +4,7 @@
 #include <xsimd/xsimd.hpp>
 #include "../../../infrastructure/FLXDefines.h"
 #include "../BaseImageOperation.h"
-
+#include "../../../infrastructure/FluxMath.h"
 
 class DetailsImageOperation : public BaseImageOperation {
 private:

@@ -452,7 +452,7 @@ std::vector<WaveletImage<pixel_t>>* FluxWaveletDenoising::ApplyDenoising(std::ve
 		pixel_t threshold = thresholdValues[i];
 
 		if (threshold != 0.0f) {
-			ApplyThreshold(*coppiedImage.CA, threshold);
+			//ApplyThreshold(*coppiedImage.CA, threshold);
 			ApplyThreshold(*coppiedImage.CD, threshold);
 			ApplyThreshold(*coppiedImage.CH, threshold);
 			ApplyThreshold(*coppiedImage.CV, threshold);

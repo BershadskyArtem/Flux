@@ -23,9 +23,9 @@ int main()
 
 	FluxImage* image =  input.DecodeImage();
 
-	JpegImageEncoder encoder1 = JpegImageEncoder((pixel_t*)image->Pixels, image->Width, image->Height, 3);
-	encoder1.Init();
-	encoder1.FastSave(outputFilePath2);
+	//JpegImageEncoder encoder1 = JpegImageEncoder((pixel_t*)image->Pixels, image->Width, image->Height, 3);
+	//encoder1.Init();
+	//encoder1.FastSave(outputFilePath2);
 
 	//FluxImage* processed = FluxImageProcessor::DebugProcessToLuma(image);
 	
@@ -39,15 +39,22 @@ int main()
 	set.Layers[0].Crop.RightDownX = 512;
 	set.Layers[0].Crop.RightDownY = 512;
 	set.Layers[0].Denoise.Chrominance = 0;
-	set.Layers[0].Denoise.Luminance = 0;
-	set.Layers[0].Texture.Amount = 1;
-	set.Layers[0].Clarity.Amount = 1;
+	//Max 40
+	set.Layers[0].Denoise.Luminance = 20;
+	set.Layers[0].Texture.Amount = 200;
+	set.Layers[0].Clarity.Amount = 200;
 	set.ChangedLayer = 0;
 	set.ChangedStage = ProcessingStage::Input;
 
+	auto preProcessTime = BenchmarkHelper::StartWatch();
 	ProcessingCache* cache = FluxImageProcessor::PreProcess(image, nullptr);
+	BenchmarkHelper::ShowDurationFinal(preProcessTime, "Pre-process time took... ");
+
+	auto fastProcessFromGround = BenchmarkHelper::StartWatch();
 	FluxImage* processedImage = FluxImageProcessor::FastProcessToBitmap(cache, &set);
-		
+	BenchmarkHelper::ShowDurationFinal(fastProcessFromGround, "Fast processing from ground up took... ");
+
+
 	JpegImageEncoder encoder = JpegImageEncoder((pixel_t*)processedImage->Pixels, processedImage->Width, processedImage->Height, 3);
 	encoder.Init();
 	encoder.FastSave(outputFilePath);

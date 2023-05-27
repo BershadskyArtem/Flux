@@ -17,13 +17,13 @@ void FluxImageProcessor::Init()
 	//BaseImageOperation* op = ;
 
 	s_Operations.push_back(new InputImageOperation());
-	//s_Operations.push_back(new CropImageOperation());
+	s_Operations.push_back(new CropImageOperation());
 	//s_Operations.push(new ResizeImageOperation());
-	//s_Operations.push_back(new WaveletDecomposeImageOperation());
-	//s_Operations.push_back(new DenoiseImageOperation());
+	s_Operations.push_back(new WaveletDecomposeImageOperation());
+	s_Operations.push_back(new DenoiseImageOperation());
 	//s_Operations.push(new DehazeImageOperation());
-	//s_Operations.push_back(new DetailsImageOperation());
-	//s_Operations.push_back(new WaveletComposeImageOperation());
+	s_Operations.push_back(new DetailsImageOperation());
+	s_Operations.push_back(new WaveletComposeImageOperation());
 	s_Operations.push_back(new LutImageOperation());
 }
 
@@ -153,10 +153,6 @@ ProcessingCache* FluxImageProcessor::PreProcess(FluxImage* image, ProcessSetting
 
 	//Color manage 
 	//I don't have time to handle any camera out there
-	std::string outputFilePath2 = "C:\\Users\\Artyom\\Downloads\\Lena-B.jpg";
-	JpegImageEncoder encoder1 = JpegImageEncoder((pixel_t*)bMat.GetPointer(), rMat.Width(), rMat.Height(), 1);
-	encoder1.Init();
-	encoder1.FastSave(outputFilePath2);
 
 	//Fill caches
 	InternalImageData* data = new InternalImageData();

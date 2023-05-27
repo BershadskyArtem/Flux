@@ -57,7 +57,8 @@ void ColorLUTConverter::ConvertToLab(pixel_t* rIn, pixel_t* gIn, pixel_t* bIn, p
 	for (int y = 0; y < height; y++)
 	{
 		int startOfLine = y * width;
-		for (int x = 0; x < width - inc; x+=inc)
+		int x = 0;
+		for (; x < width - inc; x+=inc)
 		{
 			int idx = startOfLine + x;
 			vfloat rV = vfloat::load_aligned(&rIn[idx]);
@@ -75,7 +76,7 @@ void ColorLUTConverter::ConvertToLab(pixel_t* rIn, pixel_t* gIn, pixel_t* bIn, p
 			bV.store_aligned(&bOut[idx]);
 		}
 	
-		for (int x = width - inc; x < width; x++)
+		for (; x < width; x++)
 		{
 			int idx = startOfLine + x;
 			float r = rIn[idx];
@@ -84,11 +85,11 @@ void ColorLUTConverter::ConvertToLab(pixel_t* rIn, pixel_t* gIn, pixel_t* bIn, p
 	
 			float l = s_LabLutL.Get01(r, g, b);
 			float a = s_LabLutA.Get01(r, g, b);
-			b = s_LabLutA.Get01(r, g, b);
+			float b2 = s_LabLutB.Get01(r, g, b);
 	
 			lOut[idx] = l;
 			aOut[idx] = a;
-			bOut[idx] = b;
+			bOut[idx] = b2;
 		}
 	}
 }
