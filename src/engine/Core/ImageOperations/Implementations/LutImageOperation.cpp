@@ -39,32 +39,41 @@ void LutImageOperation::ElevateBrightness(pixel_t l, pixel_t a, pixel_t b, LUTPr
 ProcessingCacheEntry* LutImageOperation::Run(ProcessingCacheEntry* previousCachedStage, ProcessingCacheEntry* currentCachedStage, ProcessSettingsLayer* newSettings)
 {
 	//No need to delete useless current cache (Internal lab image) because we can populate it with valid new data
-	if (currentCachedStage == nullptr) {
-		currentCachedStage = new ProcessingCacheEntry();
+
+	//Internal lab image
+	InternalImageData* currentCache = (InternalImageData*)currentCachedStage->Caches;
+	InternalLabImage* previousCache = (InternalLabImage*)previousCachedStage->Caches;
+
+	int w = previousCache->Width;
+	int h = previousCache->Height;
+
+	if (currentCache == nullptr) {
+		currentCache = new InternalImageData();
+		currentCache->Width = previousCache->Width;
+		currentCache->Height = previousCache->Height;
+		currentCache->RPixels = new pixel_t[w * h];
+		currentCache->GPixels = new pixel_t[w * h];
+		currentCache->BPixels = new pixel_t[w * h];
 	}
-
-	if (currentCachedStage->Caches == nullptr) {
-		currentCachedStage->Caches = new InternalLabImage();
-		currentCachedStage->CachesCount = 1;
+	else {
+		if (currentCache->Width != w || currentCache->Height != h) {
+			//Invalidate caches
+			if (currentCache->RPixels != nullptr) {
+				delete[] currentCache->RPixels;
+			}
+			if (currentCache->GPixels != nullptr) {
+				delete[] currentCache->GPixels;
+			}
+			if (currentCache->BPixels != nullptr) {
+				delete[] currentCache->BPixels;
+			}
+			currentCache->Width = previousCache->Width;
+			currentCache->Height = previousCache->Height;
+			currentCache->RPixels = new pixel_t[w * h];
+			currentCache->GPixels = new pixel_t[w * h];
+			currentCache->BPixels = new pixel_t[w * h];
+		}
 	}
-
-	InternalImageData* previousCache = (InternalImageData*)previousCachedStage->Caches;
-
-	InternalLabImage* labImage = (InternalLabImage*)currentCachedStage->Caches;
-
-	if (labImage->LPixels == nullptr) {
-		labImage->LPixels = new pixel_t[previousCache->Width * previousCache->Height];
-	}
-
-	if (labImage->APixels == nullptr) {
-		labImage->APixels = new pixel_t[previousCache->Width * previousCache->Height];
-	}
-
-	if (labImage->BPixels == nullptr) {
-		labImage->BPixels = new pixel_t[previousCache->Width * previousCache->Height];
-	}
-	labImage->Width = previousCache->Width;
-	labImage->Height = previousCache->Height;
 
 	//Refill cache
 	LUTf3d* lutL = new LUTf3d();
@@ -78,34 +87,51 @@ ProcessingCacheEntry* LutImageOperation::Run(ProcessingCacheEntry* previousCache
 
 	LUTProcessingSettings& settings = newSettings->LUT;
 
-	for (pixel_t l = 0; l < LUT_DIM; l++)
+	for (pixel_t r = 0; r < LUT_DIM; r++)
 	{
-		for (pixel_t a = 0; a < LUT_DIM; a++)
+		for (pixel_t g = 0; g < LUT_DIM; g++)
 		{
 			for (pixel_t b = 0; b < LUT_DIM; b++)
 			{
-				pixel_t lF = l / LUT_DIM;
-				pixel_t aF = a / LUT_DIM;
+				pixel_t rF = r / LUT_DIM;
+				pixel_t gF = g / LUT_DIM;
 				pixel_t bF = b / LUT_DIM;
 
-				pixel_t rV = 0;
-				pixel_t gV = 0;
-				pixel_t bV = 0;
+				rF = Converter::RGB2sRGB(rF);
+				gF = Converter::RGB2sRGB(gF);
+				bF = Converter::RGB2sRGB(bF);
 
-				Converter::OKLab2RGB(lF, aF, bF, rV, gV, bV);
-
-				//ElevateBrightness(lF, aF, bF, settings);
-
-				lutL->SetValue(rV, l, a, b);
-				lutA->SetValue(gV, l, a, b);
-				lutB->SetValue(bV, l, a, b);
+				lutL->SetValue(rF, r, g, b);
+				lutA->SetValue(gF, r, g, b);
+				lutB->SetValue(bF, r, g, b);
 			}
 		}
 	}
 
-	//Apply 3D luts 
-	LUTf3d::ApplyLUTs(previousCache->RPixels, previousCache->GPixels, previousCache->BPixels, labImage->LPixels, labImage->APixels, labImage->BPixels, *lutL, *lutA, *lutB, labImage->Width, labImage->Height);
+	std::string outputFilePath1 = "C:\\Users\\Artyom\\Downloads\\Lena-B-End.jpg";
+	JpegImageEncoder encoder2 = JpegImageEncoder((pixel_t*)previousCache->BPixels, w, h, 1);
+	encoder2.Init();
+	encoder2.FastSave(outputFilePath1);
 
+	pixel_t* rPix = new pixel_t[w * h]{};
+	pixel_t* gPix = new pixel_t[w * h]{};
+	pixel_t* bPix = new pixel_t[w * h]{};
+
+	Converter::OKLab2RGB(previousCache->LPixels, previousCache->APixels, previousCache->BPixels, rPix, gPix, bPix, w, h);
+	
+	std::string outputFilePath2 = "C:\\Users\\Artyom\\Downloads\\Lena-R.jpg";
+	JpegImageEncoder encoder1 = JpegImageEncoder((pixel_t*)rPix, w, h, 1);	
+	encoder1.Init();
+	encoder1.FastSave(outputFilePath2);
+
+
+
+	//Apply 3D luts 
+	LUTf3d::ApplyLUTs(rPix, gPix, bPix, currentCache->RPixels, currentCache->GPixels, currentCache->BPixels, *lutL, *lutA, *lutB, w, h);
+
+	delete[] rPix;
+	delete[] gPix;
+	delete[] bPix;
 
 	/*LUT
 		WB
@@ -118,7 +144,15 @@ ProcessingCacheEntry* LutImageOperation::Run(ProcessingCacheEntry* previousCache
 		Tonning
 	*/
 
-	currentCachedStage->Caches = labImage;
+	lutL->Dispose();
+	lutA->Dispose();
+	lutB->Dispose();
+
+	delete lutL;
+	delete lutA;
+	delete lutB;
+
+	currentCachedStage->Caches = currentCache;
 
 	return currentCachedStage;
 }

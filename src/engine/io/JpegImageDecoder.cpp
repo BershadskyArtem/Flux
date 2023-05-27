@@ -167,6 +167,8 @@ bool JpegImageDecoder::GetFullImage(float* buf) {
 
     MemoryUtils::CopyFromUint8ToFloat(pixelsBuf, buf, 3, Width() * Height(), true);
 
+    Converter::sRGB2RGB(buf, buf, Width() * 3, Height());
+
     tjFree(pixelsBuf);
 
     return !HasErrors();

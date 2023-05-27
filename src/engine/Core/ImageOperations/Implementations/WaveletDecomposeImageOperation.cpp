@@ -37,13 +37,13 @@ ProcessingCacheEntry* WaveletDecomposeImageOperation::Run(ProcessingCacheEntry* 
     WaveletCache* waveletCache = new WaveletCache();
 
 
-    std::vector<WaveletImage<pixel_t>> lD = denoiser.Wavedec(matL);;
-    std::vector<WaveletImage<pixel_t>> aD = denoiser.Wavedec(matA);;
-    std::vector<WaveletImage<pixel_t>> bD = denoiser.Wavedec(matB);;
-    waveletCache->LDec = &lD;
-    waveletCache->ADec = &aD;
-    waveletCache->BDec = &bD;
-
+    std::vector<WaveletImage<pixel_t>>* lD = denoiser.Wavedec(matL);;
+    std::vector<WaveletImage<pixel_t>>* aD = denoiser.Wavedec(matA);;
+    std::vector<WaveletImage<pixel_t>>* bD = denoiser.Wavedec(matB);;
+    waveletCache->LDec = lD;
+    waveletCache->ADec = aD;
+    waveletCache->BDec = bD;
+    
     currentCachedStage->Caches = waveletCache;
 
     return currentCachedStage;

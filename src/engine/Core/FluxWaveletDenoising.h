@@ -62,7 +62,7 @@ public:
 
 	pixel_t* Idwt(WaveletLine& line);	
 
-	std::vector<WaveletImage<pixel_t>> Wavedec(Matrix<pixel_t> &input);
+	std::vector<WaveletImage<pixel_t>>* Wavedec(Matrix<pixel_t> &input);
 
 	Matrix<pixel_t> Waveinv(std::vector<WaveletImage<pixel_t>> &input);
 

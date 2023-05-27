@@ -46,6 +46,31 @@ void Converter::sRGB2RGB(pixel_t* r, pixel_t* g, pixel_t* b, pixel_t* rOut, pixe
 	}
 }
 
+void Converter::sRGB2RGB(pixel_t* rgbIn, pixel_t* rgbOut, int width, int height)
+{
+	int size = width * height;
+	int inc = vfloat::size;
+
+	vfloat zeroV = 0.f;
+	vfloat oneV = 1.f;
+
+#pragma omp parallel for
+	for (int i = 0; i < size - inc; i += inc)
+	{
+		auto rV = vfloat::load_aligned(&rgbIn[i]);
+		rV = xsimd::clip(rV, zeroV, oneV);
+		rV = Converter::LUTsRGBToRGBFloat.Get01(rV);
+		rV.store_aligned(&rgbOut[i]);
+	}
+
+	for (int i = size - inc; i < size; i++) {
+		auto rV = rgbIn[i];
+		rV = std::clamp(rV, 0.f, 1.f);
+		rV = Converter::LUTsRGBToRGBFloat.Get01(rV);
+		rgbOut[i] = rV;
+	}
+}
+
 void Converter::sRGB2RGB(byte_t r, byte_t g, byte_t b, byte_t& rOut, byte_t& gOut, byte_t& bOut)
 {
 	rOut = RGB2sRGBLUT[r];
@@ -77,7 +102,31 @@ void Converter::OKLab2RGB(pixel_t* l, pixel_t* a, pixel_t* b, pixel_t* rOut, pix
 	int size = width * height;
 	int inc = vfloat::size;
 
+	const pixel_t s12i = 0.3963377774f;
+	const pixel_t s13i = 0.2158037573f;
+
+	const pixel_t s22i = -0.1055613458f;
+	const pixel_t s23i = -0.0638541728f;
+	 
+	const pixel_t s32i = -0.0894841775f;
+	const pixel_t s33i = -1.2914855480f;
+	 
+	const pixel_t s11o = 4.0767416621f;
+	const pixel_t s12o = -3.3077115913f;
+	const pixel_t s13o = 0.2309699292f;
+	 
+	const pixel_t s21o = -1.2684380046f;
+	const pixel_t s22o = 2.6097574011f;
+	const pixel_t s23o = -0.3413193965f;
+	 
+	const pixel_t s31o = -0.0041960863f;
+	const pixel_t s32o = -0.7034186147f;
+	const pixel_t s33o = 1.7076147010f;
+
+
 	//First step
+	vfloat zeroV = 0.0f;
+	vfloat oneV = 1.0f;
 
 	vfloat v12i = 0.3963377774f;
 	vfloat v13i = 0.2158037573f;
@@ -102,28 +151,59 @@ void Converter::OKLab2RGB(pixel_t* l, pixel_t* a, pixel_t* b, pixel_t* rOut, pix
 	vfloat v32o = -0.7034186147f;
 	vfloat v33o = 1.7076147010f;
 
-#pragma omp parallel for
-	for (int i = 0; i < size; i += inc)
+//#pragma omp parallel for
+	//for (int i = 0; i < size; i += inc)
+	//{
+	//	auto rV = vfloat::load_aligned(&l[i]);
+	//	auto gV = vfloat::load_aligned(&a[i]);
+	//	auto bV = vfloat::load_aligned(&b[i]);
+	//
+	//	auto l_ = rV + gV * v12i + bV * v13i;
+	//	auto a_ = rV + gV * v22i + bV * v23i;
+	//	auto b_ = rV + gV * v32i + bV * v33i;
+	//
+	//	l_ = l_ * l_ * l_;
+	//	a_ = a_ * a_ * a_;
+	//	b_ = b_ * b_ * b_;
+	//
+	//	auto rOutV = l_ * v11o + a_ * v12o + b_ * v13o;
+	//	auto gOutV = l_ * v21o + a_ * v22o + b_ * v23o;
+	//	auto bOutV = l_ * v31o + a_ * v32o + b_ * v33o;
+	//
+	//	rOutV = xsimd::clip(rOutV, zeroV, oneV);
+	//	gOutV = xsimd::clip(gOutV, zeroV, oneV);
+	//	bOutV = xsimd::clip(bOutV, zeroV, oneV);
+	//
+	//	rOutV.store_aligned(&rOut[i]);
+	//	gOutV.store_aligned(&gOut[i]);
+	//	bOutV.store_aligned(&bOut[i]);
+	//}
+
+	for (int i = 0; i < size; i++)
 	{
-		auto rV = vfloat::load_aligned(&l[i]);
-		auto gV = vfloat::load_aligned(&a[i]);
-		auto bV = vfloat::load_aligned(&b[i]);
-
-		auto l_ = rV + gV * v12i + bV * v13i;
-		auto a_ = rV + gV * v22i + bV * v23i;
-		auto b_ = rV + gV * v32i + bV * v33i;
-
+		auto rV = l[i];
+		auto gV = a[i];
+		auto bV = b[i];
+	
+		auto l_ = rV + gV * s12i + bV * s13i;
+		auto a_ = rV + gV * s22i + bV * s23i;
+		auto b_ = rV + gV * s32i + bV * s33i;
+	
 		l_ = l_ * l_ * l_;
 		a_ = a_ * a_ * a_;
 		b_ = b_ * b_ * b_;
-
-		auto rOutV = l_ * v11o + a_ * v12o + b_ * v13o;
-		auto gOutV = l_ * v21o + a_ * v22o + b_ * v23o;
-		auto bOutV = l_ * v31o + a_ * v32o + b_ * v33o;
-
-		rOutV.store_aligned(&rOut[i]);
-		gOutV.store_aligned(&gOut[i]);
-		bOutV.store_aligned(&bOut[i]);
+	
+		auto rOutV = l_ * s11o + a_ * s12o + b_ * s13o;
+		auto gOutV = l_ * s21o + a_ * s22o + b_ * s23o;
+		auto bOutV = l_ * s31o + a_ * s32o + b_ * s33o;
+	
+		rOutV = std::clamp(rOutV, 0.0f, 1.0f);
+		gOutV = std::clamp(gOutV, 0.0f, 1.0f);
+		bOutV = std::clamp(bOutV, 0.0f, 1.0f);
+	
+		rOut[i] = rOutV;
+		gOut[i] = gOutV;
+		bOut[i] = bOutV;
 	}
 }
 
@@ -195,6 +275,11 @@ void Converter::OkLCh2OkLab(pixel_t l, pixel_t c, pixel_t h, pixel_t& lOut, pixe
 	lOut = l;
 	aOut = aP;
 	bOut = bP;
+}
+
+pixel_t Converter::RGB2sRGB(pixel_t in)
+{
+	return Converter::LUTRGBtosRGBFloat.Get01(in);
 }
 
 void Converter::Init()

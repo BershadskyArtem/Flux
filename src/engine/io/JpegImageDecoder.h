@@ -6,6 +6,7 @@
 #include "ImageDecoder.h"
 #include "../infrastructure/InteropTypes.h"
 #include "../infrastructure/MemoryUtils.h"
+#include "../Color/Converter.h"
 
 class JpegImageDecoder : public AbstractImageDecoder {
 private:

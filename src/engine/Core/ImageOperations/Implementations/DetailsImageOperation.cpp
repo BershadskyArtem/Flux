@@ -1,9 +1,9 @@
 #include "DetailsImageOperation.h"
 
-std::vector<pixel_t> DetailsImageOperation::s_SharpenMultipliers = { 1,1,1,1 };
-std::vector<pixel_t> DetailsImageOperation::s_TextureMultipliers = { 1,1,1,1 };
+std::vector<pixel_t> DetailsImageOperation::s_SharpenMultipliers = { 0.5f, 0.5f ,0.5f ,0.5f };
+std::vector<pixel_t> DetailsImageOperation::s_TextureMultipliers = { 0.5f, 0.5f ,0.5f ,0.5f };
 
-WaveletImage<pixel_t>* DetailsImageOperation::ApplyToLevel(WaveletImage<pixel_t> &image, pixel_t value)
+WaveletImage<pixel_t>* DetailsImageOperation::ApplyToLevel(WaveletImage<pixel_t>& image, pixel_t value)
 {
 	int w = image.Width;
 	int h = image.Height;
@@ -20,6 +20,11 @@ WaveletImage<pixel_t>* DetailsImageOperation::ApplyToLevel(WaveletImage<pixel_t>
 
 	//Copy wavelet level
 	WaveletImage<pixel_t>* result = new WaveletImage<pixel_t>();
+	result->Width = image.Width;
+	result->InitialWidth = image.InitialWidth;
+	result->Height = image.Height;
+	result->InitialHeight = image.InitialHeight;
+
 	result->CA = image.CA->Copy();
 	result->CD = cdMat;
 	result->CV = cvMat;
@@ -31,7 +36,7 @@ WaveletImage<pixel_t>* DetailsImageOperation::ApplyToLevel(WaveletImage<pixel_t>
 
 	//No need to trash the caches
 
-//#pragma omp parallel for
+#pragma omp parallel for
 	for (int y = 0; y < h; y++)
 	{
 		int startOfLine = y * w;
@@ -51,7 +56,7 @@ WaveletImage<pixel_t>* DetailsImageOperation::ApplyToLevel(WaveletImage<pixel_t>
 	}
 
 
-	//#pragma omp parallel for
+#pragma omp parallel for
 	for (int y = 0; y < h; y++)
 	{
 		int startOfLine = y * w;
@@ -70,7 +75,7 @@ WaveletImage<pixel_t>* DetailsImageOperation::ApplyToLevel(WaveletImage<pixel_t>
 		}
 	}
 
-	//#pragma omp parallel for
+#pragma omp parallel for
 	for (int y = 0; y < h; y++)
 	{
 		int startOfLine = y * w;
@@ -152,7 +157,7 @@ ProcessingCacheEntry* DetailsImageOperation::Run(ProcessingCacheEntry* previousC
 		WaveletImage<pixel_t>* enhancedL = ApplyToLevel(cache->LDec->at(i), multiplier);
 		newCache->LDec->push_back(*enhancedL);
 	}
-	
+
 	//Copy other channels
 	for (int i = 0; i < depthToApply; i++)
 	{

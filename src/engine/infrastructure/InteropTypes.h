@@ -112,55 +112,13 @@ struct ExifMetadata {
 };
 
 enum ProcessingStage : int {
-    /// <summary>
-    /// Unkown. Default.
-    /// </summary>
-    NotSet = 0,
-
-    /// <summary>
-    /// No corrections
-    /// </summary>
-    Initial,
-
-    /// <summary>
-    /// Resized
-    /// </summary>
-    Resize, 
-
-    /// <summary>
-    /// Rotated
-    /// </summary>
-    Rotate, 
-
-    /// <summary>
-    /// Cropped
-    /// </summary>
+    Input,
     Crop,
-
-    /// <summary>
-    /// Wavelets decomposed
-    /// </summary>
+    WaveletDecompose,
     Denoise,
-
-    /// <summary>
-    /// Dehaze before wavelets
-    /// </summary>
-    Dehaze,
-
-    /// <summary>
-    /// Clarity (Unsharp mask)
-    /// </summary>
-    Clarity,
-    
-    /// <summary>
-    /// Texture (some convolution)
-    /// </summary>
-    Texture,
-
-    /// <summary>
-    /// WB, HDR, Contrast, levels, Curve, HSL, Tonning
-    /// </summary>
-    LUTStage
+    Details,
+    WaveletCompose,
+    Lut
 };
 
 

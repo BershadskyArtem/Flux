@@ -12,7 +12,7 @@ typedef unsigned char byte_t;
 typedef xsimd::batch<pixel_t, SIMD_ARCH> vfloat;
 typedef xsimd::batch<int, SIMD_ARCH> vint;
 
-constexpr int LUT_DIM = 16;
+constexpr int LUT_DIM = 32;
 
 
 

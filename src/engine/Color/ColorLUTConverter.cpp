@@ -50,15 +50,14 @@ void ColorLUTConverter::Init()
 
 void ColorLUTConverter::ConvertToLab(pixel_t* rIn, pixel_t* gIn, pixel_t* bIn, pixel_t* lOut, pixel_t* aOut, pixel_t* bOut, int width, int height)
 {
-	int size = width * height;
+	//int size = width * height;
 	int inc = vfloat::size;
 
 	#pragma omp parallel for 
 	for (int y = 0; y < height; y++)
 	{
 		int startOfLine = y * width;
-		int x = 0;
-		for (; x < width - inc; x+=inc)
+		for (int x = 0; x < width - inc; x+=inc)
 		{
 			int idx = startOfLine + x;
 			vfloat rV = vfloat::load_aligned(&rIn[idx]);
@@ -76,7 +75,7 @@ void ColorLUTConverter::ConvertToLab(pixel_t* rIn, pixel_t* gIn, pixel_t* bIn, p
 			bV.store_aligned(&bOut[idx]);
 		}
 	
-		for (; x < width; x++)
+		for (int x = width - inc; x < width; x++)
 		{
 			int idx = startOfLine + x;
 			float r = rIn[idx];

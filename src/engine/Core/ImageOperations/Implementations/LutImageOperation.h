@@ -4,6 +4,7 @@
 #include "../../../Color/ColorLUTConverter.h"
 #include "../../../infrastructure/LUTf3d.h"
 #include "../../../infrastructure/FluxMath.h"
+#include "../../../io/Encoders/JpegImageEncoder.h"
 
 class LutImageOperation : public BaseImageOperation {
 	// Inherited via BaseImageOperation

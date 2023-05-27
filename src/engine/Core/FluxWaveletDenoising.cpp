@@ -393,10 +393,10 @@ FluxWaveletDenoising::~FluxWaveletDenoising()
 }
 
 
-std::vector<WaveletImage<pixel_t>> FluxWaveletDenoising::Wavedec(Matrix<pixel_t>& input) {
+std::vector<WaveletImage<pixel_t>>* FluxWaveletDenoising::Wavedec(Matrix<pixel_t>& input) {
 
 
-	std::vector<WaveletImage<pixel_t>> result = std::vector<WaveletImage<pixel_t>>();
+	std::vector<WaveletImage<pixel_t>>* result = new std::vector<WaveletImage<pixel_t>>();
 	int depth = 1;
 	Matrix<pixel_t>* currentMatrix = &input;
 
@@ -404,7 +404,7 @@ std::vector<WaveletImage<pixel_t>> FluxWaveletDenoising::Wavedec(Matrix<pixel_t>
 	{
 		depth++;
 		WaveletImage<pixel_t> dwt = Dwt2d(*currentMatrix);
-		result.push_back(dwt);
+		result->push_back(dwt);
 		currentMatrix = dwt.CA;
 	}
 

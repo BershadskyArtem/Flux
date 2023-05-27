@@ -5,16 +5,18 @@ ProcessingCacheEntry* CropImageOperation::Run(ProcessingCacheEntry* previousCach
 	//Lab/RGB image on input, image on entering
 
 	//Delete current cache because we don't need it in this case
-	if (currentCachedStage->CachesCount != 0) {
+	if (currentCachedStage->CachesCount > 0) {
 		InternalImageData* cacheToDelete = (InternalImageData*)currentCachedStage->Caches;
-		if(cacheToDelete->RPixels != nullptr)
-			delete[] cacheToDelete->RPixels;
-		if (cacheToDelete->RPixels != nullptr)
-			delete[] cacheToDelete->GPixels;
-		if (cacheToDelete->RPixels != nullptr)
-			delete[] cacheToDelete->BPixels;
-		delete cacheToDelete;
-		currentCachedStage->Caches = nullptr;
+		if (cacheToDelete != nullptr) {
+			if (cacheToDelete->RPixels != nullptr)
+				delete[] cacheToDelete->RPixels;
+			if (cacheToDelete->RPixels != nullptr)
+				delete[] cacheToDelete->GPixels;
+			if (cacheToDelete->RPixels != nullptr)
+				delete[] cacheToDelete->BPixels;
+			delete cacheToDelete;
+			currentCachedStage->Caches = nullptr;
+		}
 	}
 	InternalImageData* image = (InternalImageData*) previousCachedStage->Caches;
 	
