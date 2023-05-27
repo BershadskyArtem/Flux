@@ -38,6 +38,7 @@ add_executable (FluxTest
     "../engine/io/RawImageDecoder.cpp" 
     "../engine/Color/ColorLUTConverter.h" 
     "../engine/Color/ColorLUTConverter.cpp" 
+    "../engine/Color/FluxColorMath.h" 
     "../engine/Core/FluxImageProcessor.cpp" 
     "../engine/Core/FluxImageProcessor.h" 
     "../engine/Core/FluxWaveletDenoising.h" 

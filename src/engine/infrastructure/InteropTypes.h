@@ -248,6 +248,10 @@ struct ColorSelectionBorder {
     float SaturationLeft;
     float SaturationRight;
 
+    bool IsSmallerBorder;
+
+    float Smoothness;
+
     BaseProcessingSetting Mode;
 };
 
@@ -258,6 +262,7 @@ struct HSLColorProcessingSettings {
     int Lightness;
     int Saturation;
     int Uniformity;
+    
 
     BaseProcessingSetting Mode;
 };

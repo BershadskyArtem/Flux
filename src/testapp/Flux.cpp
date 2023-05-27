@@ -4,6 +4,8 @@
 #include "../engine/infrastructure/BenchmarkHelper.h"
 #include "../engine/Core/FluxImageProcessor.h"
 #include "../engine/Core//Filters/BoxBlur.h"
+#include "../engine/Color/FluxColorMath.h"
+
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -12,60 +14,41 @@ using namespace std;
 
 int main()
 {
+	Converter::Init();
 	ColorLUTConverter::Init();
-	FluxImageProcessor::Init();
-	std::string inputFilePath = "C:\\Users\\Artyom\\Downloads\\rectimage1023-1024.jpg";
+
+	int rIn = 0;
+	int gIn = 0;
+	int bIn = 0;
+
+	std::cin >> rIn;
+	std::cin >> gIn;
+	std::cin >> bIn;
 	
-	std::string outputFilePath = "C:\\Users\\Artyom\\Downloads\\rectimage1023-1024-Pipeline.jpg";
-	ImageInput input = ImageInput(inputFilePath);
-
-	input.Init();
-
-	FluxImage* image =  input.DecodeImage();
-
-	//JpegImageEncoder encoder1 = JpegImageEncoder((pixel_t*)image->Pixels, image->Width, image->Height, 3);
-	//encoder1.Init();
-	//encoder1.FastSave(outputFilePath2);
-
-	//FluxImage* processed = FluxImageProcessor::DebugProcessToLuma(image);
+	pixel_t r = rIn / 255.0f;
+	pixel_t g = gIn / 255.0f;
+	pixel_t b = bIn / 255.0f;
 	
-	//Matrix<pixel_t> mat = Matrix<pixel_t>(image->Width, image->Height, (pixel_t*)processed->Pixels);
-	std::cout << std::endl;
-	ProcessSettings set = ProcessSettings();
-	set.Layers = new ProcessSettingsLayer[1]{};
-	set.Layers[0] = ProcessSettingsLayer();
-	set.Layers[0].Crop.LeftUpX = 0;
-	set.Layers[0].Crop.LeftUpY = 0;
-	set.Layers[0].Crop.RightDownX = 1000;
-	set.Layers[0].Crop.RightDownY = 1000;
-	set.Layers[0].Denoise.Chrominance = 0;
-	//Max 40
-	set.Layers[0].Denoise.Luminance = 20;
-	set.Layers[0].Texture.Amount = 200;
-	set.Layers[0].Clarity.Amount = 200;
-	set.ChangedLayer = 0;
-	set.ChangedStage = ProcessingStage::Input;
+	pixel_t l1, l2;
+	pixel_t a1, c2;
+	pixel_t b1, h2;
+	
+	Converter::RGB2OKLab(r, g, b, l1, a1, b1);
+	Converter::OkLab2OkLCh(l1, a1, b1, l2, c2, h2);
+	
+	std::cout << FluxColorMath::NormalizeOkHue(h2) << std::endl;
 
-	auto preProcessTime = BenchmarkHelper::StartWatch();
-	ProcessingCache* cache = FluxImageProcessor::PreProcess(image, nullptr);
-	BenchmarkHelper::ShowDurationFinal(preProcessTime, "Pre-process time took... ");
+	pixel_t hueT = h2;
 
-	auto fastProcessFromGround = BenchmarkHelper::StartWatch();
-	FluxImage* processedImage = FluxImageProcessor::FastProcessToBitmap(cache, &set);
-	BenchmarkHelper::ShowDurationFinal(fastProcessFromGround, "Fast processing from ground up took... ");
+	
+	ColorSelectionBorder border = ColorSelectionBorder();
+	border.HueLeft = 260;
+	border.HueRight = 40;
+	border.SaturationLeft = 0;
+	border.SaturationRight = 1.0;
+	border.Smoothness = 10;
 
-
-	set.ChangedStage = ProcessingStage::Lut;
-	auto lutOnlyStage = BenchmarkHelper::StartWatch();
-	FluxImage* processedImage2 = FluxImageProcessor::FastProcessToBitmap(cache, &set);
-	BenchmarkHelper::ShowDurationFinal(lutOnlyStage, "Lut only fast processing stage took... ");
-
-	JpegImageEncoder encoder = JpegImageEncoder((pixel_t*)processedImage2->Pixels, processedImage2->Width, processedImage2->Height, 3);
-	encoder.Init();
-	encoder.FastSave(outputFilePath);
-	ImageInput::FreeFluxImage(image);
-	ImageInput::FreeFluxImage(processedImage);
-	ImageInput::FreeFluxImage(processedImage2);
+	std::cout << FluxColorMath::IsInsideHueChrominanceBoundary(hueT, 0.5f, border) << std::endl;
 
 	return 0;
 }

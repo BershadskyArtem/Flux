@@ -258,7 +258,7 @@ void Converter::OkLab2OkLCh(pixel_t l, pixel_t a, pixel_t b, pixel_t& lOut, pixe
 	auto c = std::sqrtf(a * a + b * b);
 	auto h = 0.f;
 
-	if (b > 0.01f) {
+	if (std::abs(b) > 0.0001f) {
 		h = std::atan2f(b, a);
 	}
 

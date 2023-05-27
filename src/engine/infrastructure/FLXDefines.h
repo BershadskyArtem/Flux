@@ -13,6 +13,7 @@ typedef xsimd::batch<pixel_t, SIMD_ARCH> vfloat;
 typedef xsimd::batch<int, SIMD_ARCH> vint;
 
 constexpr int LUT_DIM = 32;
+constexpr float PI = 3.14159265359;
 
 
 
