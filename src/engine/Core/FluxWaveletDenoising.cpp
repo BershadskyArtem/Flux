@@ -400,7 +400,7 @@ std::vector<WaveletImage<pixel_t>>* FluxWaveletDenoising::Wavedec(Matrix<pixel_t
 	int depth = 1;
 	Matrix<pixel_t>* currentMatrix = &input;
 
-	while (currentMatrix->Width() >= _waveletData->Size && currentMatrix->Height() >= _waveletData->Size && depth < 5)
+	while (currentMatrix->Width() >= _waveletData->Size && currentMatrix->Height() >= _waveletData->Size && depth < MAX_WAVELET_DEPTH)
 	{
 		depth++;
 		WaveletImage<pixel_t> dwt = Dwt2d(*currentMatrix);
@@ -450,6 +450,8 @@ std::vector<WaveletImage<pixel_t>>* FluxWaveletDenoising::ApplyDenoising(std::ve
 		WaveletImage<pixel_t> coppiedImage = currentImage.Copy();
 
 		pixel_t threshold = thresholdValues[i];
+
+		
 
 		if (threshold != 0.0f) {
 			//ApplyThreshold(*coppiedImage.CA, threshold);

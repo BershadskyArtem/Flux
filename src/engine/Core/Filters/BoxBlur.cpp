@@ -119,7 +119,7 @@ void BoxBlur::Blur(Matrix<pixel_t>& input, Matrix<pixel_t>& output, int radius)
 				nextElement = (width - 1) - (nextElement - ((width - 1) - 1));
 			}
 
-			accumulator = accumulator - outputPixels[previousElement * width + x] + outputPixels[nextElement * width + x];
+			accumulator = accumulator - outputPixels[previousElement * width + x] + outputPixels[std::min(nextElement, height - 1) * width + x];
 			verticalBuffer[y] = accumulator / divisor;
 		}
 

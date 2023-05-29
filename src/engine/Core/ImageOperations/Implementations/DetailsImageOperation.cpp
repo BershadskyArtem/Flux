@@ -2,8 +2,10 @@
 
 //1.6, 1.3, 1.0, 1.0
 //1.0f ,1.0f ,1.225f ,1.125f
-std::vector<pixel_t> DetailsImageOperation::s_SharpenMultipliers = { 1.6f ,1.3f ,1.0f ,1.0f };
-std::vector<pixel_t> DetailsImageOperation::s_TextureMultipliers = { 1.0f ,1.0f ,1.225f ,1.125f };
+//std::vector<pixel_t> DetailsImageOperation::s_SharpenMultipliers = { 1.6f ,1.3f ,1.0f ,1.0f, 1.0f ,1.0f , 1.0f ,1.0f , 1.0f ,1.0f , 1.0f ,1.0f };
+std::vector<pixel_t> DetailsImageOperation::s_SharpenMultipliers = { 1.01f ,1.3f ,1.3f ,1.0f, 1.0f ,1.0f , 1.0f ,1.0f , 1.0f ,1.0f , 1.0f ,1.0f };
+//std::vector<pixel_t> DetailsImageOperation::s_TextureMultipliers = { 1.0f ,1.0f ,1.225f ,1.125f, 1.0f ,1.0f, 1.0f ,1.0f, 1.0f ,1.0f };
+std::vector<pixel_t> DetailsImageOperation::s_TextureMultipliers = { 1.0f ,1.0f ,1.0 ,1.125f, 1.05f ,1.0f, 1.0f ,1.0f, 1.0f ,1.0f };
 
 WaveletImage<pixel_t>* DetailsImageOperation::ApplyToLevel(WaveletImage<pixel_t>& image, pixel_t value)
 {

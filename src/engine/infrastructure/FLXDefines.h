@@ -14,6 +14,7 @@ typedef xsimd::batch<int, SIMD_ARCH> vint;
 
 constexpr int LUT_DIM = 32;
 constexpr float PI = 3.14159265359;
+constexpr int MAX_WAVELET_DEPTH = 8;
 
 
 

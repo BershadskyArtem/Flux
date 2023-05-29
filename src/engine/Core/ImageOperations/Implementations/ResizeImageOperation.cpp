@@ -75,11 +75,22 @@ ProcessingCacheEntry* ResizeImageOperation::Run(ProcessingCacheEntry* previousCa
 	const int boxWidth = std::ceil(1 / scaleX);
 	const int boxHeight = std::ceil(1 / scaleY);
 
+
+	bool suppressBluring = boxWidth <= 1 || boxHeight <= 1;
+	
+	if (suppressBluring) {
+		
+	}
+
+
 	//Box downscaling is just a box blur with subsampling
 
 	const int boxBlurRadius = std::ceil(std::max(boxWidth, boxHeight) / 2.0);
 
-	pixel_t* buffer = new pixel_t[oldWidth * oldHeight];
+	pixel_t* buffer = nullptr;
+	if (!suppressBluring)
+		buffer = new pixel_t[oldWidth * oldHeight];
+
 	Matrix<pixel_t> bufferMat = Matrix<pixel_t>(oldWidth, oldHeight, buffer);
 	Matrix<pixel_t> outputL = Matrix<pixel_t>(newWidth, newHeight, new pixel_t[newWidth * newHeight]);
 	Matrix<pixel_t> outputA = Matrix<pixel_t>(newWidth, newHeight, new pixel_t[newWidth * newHeight]);
@@ -87,20 +98,30 @@ ProcessingCacheEntry* ResizeImageOperation::Run(ProcessingCacheEntry* previousCa
 
 	//Resize L
 	Matrix<pixel_t> inputL = Matrix<pixel_t>(oldWidth, oldHeight, previousStageCache->LPixels);
-	BoxBlur::Blur(inputL, bufferMat, boxBlurRadius);
-	Subsample(bufferMat, outputL, 1.0 / scaleX, 1.0 / scaleY);
-
+	if (!suppressBluring) {
+		BoxBlur::Blur(inputL, bufferMat, boxBlurRadius);
+		Subsample(bufferMat, outputL, 1.0 / scaleX, 1.0 / scaleY);
+	}else
+		Subsample(inputL, outputL, 1.0 / scaleX, 1.0 / scaleY);
 	//Resize A
 	Matrix<pixel_t> inputA = Matrix<pixel_t>(oldWidth, oldHeight, previousStageCache->APixels);
-	BoxBlur::Blur(inputA, bufferMat, boxBlurRadius);
-	Subsample(bufferMat, outputA, 1.0 / scaleX, 1.0 / scaleY);
-
+	if (!suppressBluring) {
+		BoxBlur::Blur(inputA, bufferMat, boxBlurRadius);
+		Subsample(bufferMat, outputA, 1.0 / scaleX, 1.0 / scaleY);
+	}
+	else
+		Subsample(inputA, outputA, 1.0 / scaleX, 1.0 / scaleY);
 	//Resize B
 	Matrix<pixel_t> inputB = Matrix<pixel_t>(oldWidth, oldHeight, previousStageCache->BPixels);
-	BoxBlur::Blur(inputB, bufferMat, boxBlurRadius);
-	Subsample(bufferMat, outputB, 1.0 / scaleX, 1.0 / scaleY);
+	if (!suppressBluring) {
+		BoxBlur::Blur(inputB, bufferMat, boxBlurRadius);
+		Subsample(bufferMat, outputB, 1.0 / scaleX, 1.0 / scaleY);
+	}
+	else
+		Subsample(inputB, outputB, 1.0 / scaleX, 1.0 / scaleY);
 
-	delete[] buffer;
+	if(!suppressBluring)
+		delete[] buffer;
 
 	newCache->LPixels = outputL.GetPointer();
 	newCache->APixels = outputA.GetPointer();
@@ -108,24 +129,6 @@ ProcessingCacheEntry* ResizeImageOperation::Run(ProcessingCacheEntry* previousCa
 
 	currentCachedStage->Caches = newCache;
 	currentCachedStage->CachesCount = 1;
-
-	/*for (int y = 0; y < newHeight; y++)
-	{
-		for (int x = 0; x < newWidth; x++)
-		{
-			const int oldXStart = std::floor(x / scaleX);
-			const int oldYStart = std::floor(x / scaleY);
-			
-			const int oldXEnd = std::min(oldXStart + boxWidth, oldWidth - 1);
-			const int oldYEnd = std::min(oldYStart + boxHeight, oldHeight - 1);
-
-
-
-
-		}
-	}*/
-
-
 
 	return currentCachedStage;
 }

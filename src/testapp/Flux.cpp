@@ -49,10 +49,11 @@ int main()
 	set.Layers[0].Resize.ResizeToX = 500;
 	set.Layers[0].Resize.ResizeToY = 500;
 	set.Layers[0].Resize.Mode = 1;
-	set.Layers[0].Resize.Scale = 0.5f;
+	set.Layers[0].Resize.Scale = 1.f;
 
 	//Max 40
-	set.Layers[0].Denoise.Luminance = 20;
+	set.Layers[0].Denoise.Luminance = 100;
+	set.Layers[0].Denoise.Chrominance = 100;
 	set.Layers[0].Texture.Amount = 200;
 	set.Layers[0].Clarity.Amount = 200;
 	set.ChangedLayer = 0;
