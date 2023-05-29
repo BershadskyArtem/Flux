@@ -1,71 +1,10 @@
 #include "LutImageOperation.h"
+#include "../../../Color/FluxColorMath.h"
 
 pixel_t LutImageOperation::GetBrightnessUsingColorMask(pixel_t l, pixel_t c, pixel_t h, HSLColorProcessingSettings& settings)
 {
-	//Convert hue boundaries to hue values in OkLCH.
+	pixel_t colorFactor = FluxColorMath::IsInsideHueChrominanceBoundary(h, c, settings.SelectedColor);
 
-	//Start of red boundary. We need to shift our values to get to red start.
-	const pixel_t lchOffset = 0.453785;
-
-	//1 degree of hue rotation in OkLCH hue shift value
-	const pixel_t lchStep = 0.0174534;
-
-	const int huePointsShift = 206;
-
-	int hueBorderRadius = 0;
-
-	int leftHue = settings.SelectedColor.HueLeft;
-	int rightHue = settings.SelectedColor.HueRight;
-
-	pixel_t smoothness = settings.SelectedColor.Smoothness;
-	pixel_t resultingFactor = 1.0f;
-
-	//Evaluate HUE
-	//Basic case. We do not cross 360 hue point
-	if (leftHue <= rightHue) {
-		//pixel_t centerHuePoint = (leftHue + rightHue) / 2.0f;
-
-		//If hue point is outside of target area
-		if (!(leftHue <= h) || !(h <= rightHue)) {
-			pixel_t difference = std::min(std::abs(leftHue - h), std::abs(rightHue - h));
-			//Calculate how much we are away from smoothing area and normilize
-			pixel_t hueTargetFactor = std::clamp(smoothness - difference, 0.0f, smoothness) / smoothness;
-			resultingFactor *= hueTargetFactor;
-		}
-		
-	}
-	else {
-		//The other way around
-		int temp = leftHue;
-		leftHue = rightHue;
-		rightHue = temp;
-		//Since we are doing big leap we can cheat and just invert basic case
-		if (!(leftHue <= h) || !(h <= rightHue)) {
-			pixel_t difference = std::min(std::abs(leftHue - h), std::abs(rightHue - h));
-			//Calculate how much we are away from smoothing area and normilize
-			pixel_t hueTargetFactor = std::clamp(smoothness - difference, 0.0f, smoothness) / smoothness;
-			//The only difference between standart case
-			//TODO: create method for this
-			resultingFactor *= 1 - hueTargetFactor;
-		}
-	}
-
-
-	//Evaluate Chrominance
-	pixel_t lowerChrominance = settings.SelectedColor.SaturationLeft;
-	pixel_t upperChrominance = settings.SelectedColor.SaturationRight;
-
-	if (!(lowerChrominance <= c) || !(c <= upperChrominance)) {
-		pixel_t difference = std::min(std::abs(lowerChrominance - c), std::abs(upperChrominance - c));
-		pixel_t chrominanceTargetFactor = std::clamp(smoothness - difference, 0.0f, smoothness) / smoothness;
-		resultingFactor *= chrominanceTargetFactor;
-	}
-
-	//ResultingFactor tells me how much i am inside an affected zone
-	
-
-
-	//pixel_t leftBoundaryValue = lchOffset + lchStep * 
 
 
 	return 0.0f;
@@ -172,14 +111,9 @@ ProcessingCacheEntry* LutImageOperation::Run(ProcessingCacheEntry* previousCache
 				pixel_t aPix = 0;
 				pixel_t bPix = 0;
 
-				Converter::RGB2OKLab(r, g, b, lPix, aPix, bPix);
+				Converter::RGB2OKLab(rF, gF, bF, lPix, aPix, bPix);
 				
-				ElevateBrightness(lPix, aPix, bPix, settings);
-
-
-
-
-
+				//ElevateBrightness(lPix, aPix, bPix, settings);
 
 
 				rF = Converter::RGB2sRGB(rF);

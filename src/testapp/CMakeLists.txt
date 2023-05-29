@@ -65,6 +65,8 @@ add_executable (FluxTest
     "../engine/Core/ImageOperations/Implementations/WaveletComposeImageOperation.h" 
     "../engine/Core/ImageOperations/Implementations/InputImageOperation.h" 
     "../engine/Core/ImageOperations/Implementations/InputImageOperation.cpp" 
+    "../engine/Core/ImageOperations/Implementations/ResizeImageOperation.cpp" 
+    "../engine/Core/ImageOperations/Implementations/ResizeImageOperation.h" 
     "../engine/infrastructure/InteropTypes.cpp"
     "../engine/Core/Filters/BoxBlur.cpp"
     "../engine/Core/Filters/BoxBlur.h"

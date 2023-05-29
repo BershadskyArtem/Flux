@@ -7,7 +7,7 @@
 #include "ImageOperations/Implementations/WaveletComposeImageOperation.h"
 #include "ImageOperations/Implementations/InputImageOperation.h"
 #include "ImageOperations/Implementations/LutImageOperation.h"
-
+#include "ImageOperations/Implementations/ResizeImageOperation.h"
 #include "../io/Encoders/JpegImageEncoder.h"
 
 std::vector<BaseImageOperation*> FluxImageProcessor::s_Operations = std::vector<BaseImageOperation*>();
@@ -18,7 +18,7 @@ void FluxImageProcessor::Init()
 
 	s_Operations.push_back(new InputImageOperation());
 	s_Operations.push_back(new CropImageOperation());
-	//s_Operations.push(new ResizeImageOperation());
+	s_Operations.push_back(new ResizeImageOperation());
 	s_Operations.push_back(new WaveletDecomposeImageOperation());
 	s_Operations.push_back(new DenoiseImageOperation());
 	//s_Operations.push(new DehazeImageOperation());
@@ -219,8 +219,8 @@ ProcessingCache* FluxImageProcessor::ConstructCache(InternalImageData* image)
 	cache->Layers = new ProcessingLayerCache[1]{};
 	cache->Layers[0] = ProcessingLayerCache();
 	ProcessingLayerCache& firstLayer = cache->Layers[0];
-	firstLayer.CachesCount = 7;
-	firstLayer.Caches = new ProcessingCacheEntry[7]{};
+	firstLayer.CachesCount = s_Operations.size();
+	firstLayer.Caches = new ProcessingCacheEntry[s_Operations.size()]{};
 	ProcessingCacheEntry& firstEntry = firstLayer.Caches[0];
 	firstEntry.Stage = ProcessingStage::Input;
 	firstEntry.CachesCount = 1;

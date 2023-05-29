@@ -114,6 +114,7 @@ struct ExifMetadata {
 enum ProcessingStage : int {
     Input,
     Crop,
+    Resize,
     WaveletDecompose,
     Denoise,
     Details,
@@ -183,6 +184,8 @@ struct CropProcessingSettings {
 struct ResizeProcessingSettings {
     int ResizeToX;
     int ResizeToY;
+    //Used if Mode == 1
+    pixel_t Scale;
     int Mode;
 };
 
