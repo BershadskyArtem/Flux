@@ -5,21 +5,9 @@ ProcessingCacheEntry* CropImageOperation::Run(ProcessingCacheEntry* previousCach
 	//Lab/RGB image on input, image on entering
 
 	//Delete current cache because we don't need it in this case
-	if (currentCachedStage->CachesCount > 0) {
-		InternalImageData* cacheToDelete = (InternalImageData*)currentCachedStage->Caches;
-		if (cacheToDelete != nullptr) {
-			if (cacheToDelete->RPixels != nullptr)
-				delete[] cacheToDelete->RPixels;
-			if (cacheToDelete->RPixels != nullptr)
-				delete[] cacheToDelete->GPixels;
-			if (cacheToDelete->RPixels != nullptr)
-				delete[] cacheToDelete->BPixels;
-			delete cacheToDelete;
-			currentCachedStage->Caches = nullptr;
-		}
-	}
-	InternalImageData* image = (InternalImageData*) previousCachedStage->Caches;
-	
+	DisposeCacheEntry(currentCachedStage);
+	InternalImageData* image = (InternalImageData*)previousCachedStage->Caches;
+
 	int width = image->Width;
 	int height = image->Height;
 
@@ -50,7 +38,7 @@ ProcessingCacheEntry* CropImageOperation::Run(ProcessingCacheEntry* previousCach
 		int startOfLineWithoutCrop = y * width;
 		int startOfLineWithCrop = (y - cropHeightIdy1) * cropWidth;
 		int x = cropWidthIdx1;
-		for (; x < cropWidthIdx2 - inc; x+=inc)
+		for (; x < cropWidthIdx2 - inc; x += inc)
 		{
 			int idxWithoutCrop = startOfLineWithoutCrop + x;
 			int idxWithCrop = startOfLineWithCrop + x - cropWidthIdx1;
@@ -64,7 +52,7 @@ ProcessingCacheEntry* CropImageOperation::Run(ProcessingCacheEntry* previousCach
 			bPixels.store_aligned(&newImage->BPixels[idxWithCrop]);
 		}
 
-		for (;x < cropWidthIdx2; x++)
+		for (; x < cropWidthIdx2; x++)
 		{
 			int idxWithoutCrop = startOfLineWithoutCrop + x;
 			int idxWithCrop = startOfLineWithCrop + x - cropWidthIdx1;
@@ -88,6 +76,21 @@ ProcessingCacheEntry* CropImageOperation::Run(ProcessingCacheEntry* previousCach
 
 void CropImageOperation::Dispose()
 {
+}
+
+void CropImageOperation::DisposeCacheEntry(ProcessingCacheEntry* cache)
+{
+	if (cache->Caches == nullptr) return;
+	InternalImageData* cacheToDelete = (InternalImageData*)cache->Caches;
+	if (cacheToDelete->RPixels != nullptr)
+		delete[] cacheToDelete->RPixels;
+	if (cacheToDelete->RPixels != nullptr)
+		delete[] cacheToDelete->GPixels;
+	if (cacheToDelete->RPixels != nullptr)
+		delete[] cacheToDelete->BPixels;
+	delete cacheToDelete;
+	cache->Caches = nullptr;
+	cache->CachesCount = 0;
 }
 
 

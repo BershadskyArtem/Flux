@@ -26,6 +26,7 @@ public:
 	static ProcessSettings* DefaultSettings();
 	static FluxImage* FastProcessToBitmap(ProcessingCache* cache, ProcessSettings* settings);
 	static void DisposeLayer(ProcessingLayerCache* layer);
-	static void DisposeStageCache(ProcessingCacheEntry* entry);
+	//static void DisposeStageCache(ProcessingCacheEntry* entry);
+	static void DisposeAllCache(ProcessingCache* cache);
 	//static FluxImage* ProcessToFile(FluxImage* image, ProcessSettings* settings);
 };

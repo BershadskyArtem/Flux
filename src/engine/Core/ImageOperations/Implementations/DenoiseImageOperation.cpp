@@ -21,51 +21,15 @@ ProcessingCacheEntry* DenoiseImageOperation::Run(ProcessingCacheEntry* previousC
 	for (pixel_t i = 0; i < s_DenoisingChrominanceThresholds.size(); i++)
 	{
 		copiedLuminanceThresholds.push_back(FluxMath::LinearInterpolate(luminanceDenoising, s_DenoisingLuminanceThresholds[i], 0.f));
-		copiedChrominanceThresholds.push_back(FluxMath::LinearInterpolate(chrominanceDenoising,  s_DenoisingChrominanceThresholds[i], 0.f));
+		copiedChrominanceThresholds.push_back(FluxMath::LinearInterpolate(chrominanceDenoising, s_DenoisingChrominanceThresholds[i], 0.f));
 	}
 
 	WaveletCache* denoiseCache = (WaveletCache*)currentCachedStage->Caches;
-
-	//Dispose cache
-	if (denoiseCache != nullptr) {
-		if (denoiseCache->LDec != nullptr) {
-			for (int i = 0; i < denoiseCache->LDec->size(); i++) {
-				denoiseCache->LDec->at(i).Dispose();
-			}
-			denoiseCache->LDec->clear();
-			denoiseCache->LDec = nullptr;
-		}
-
-		if (denoiseCache->ADec != nullptr) {
-			for (int i = 0; i < denoiseCache->ADec->size(); i++) {
-				denoiseCache->ADec->at(i).Dispose();
-			}
-			denoiseCache->ADec->clear();
-			denoiseCache->ADec = nullptr;
-		}
-
-		if (denoiseCache->BDec != nullptr) {
-			for (int i = 0; i < denoiseCache->BDec->size(); i++) {
-				denoiseCache->BDec->at(i).Dispose();
-			}
-			denoiseCache->BDec->clear();
-			denoiseCache->BDec = nullptr;
-		}
-
-		delete denoiseCache;
-		denoiseCache = nullptr;
-	}
+	DisposeCacheEntry(currentCachedStage);
 
 	//Assume we have valid wavelet transform in previousCachedStage
 	WaveletCache* cache = (WaveletCache*)previousCachedStage->Caches;
-	std::cout << "Applying denoising for image. Depth is " << cache->ADec->size() << std::endl;
-	std::cout << "Thresholds for chrominance: " << std::endl;
-
-	for (int i = 0; i < copiedChrominanceThresholds.size(); i++)
-	{
-		std::cout << i << " = " << copiedChrominanceThresholds[i] << std::endl;
-	}
-
+	
 	std::vector<WaveletImage<pixel_t>>* denoisedL = FluxWaveletDenoising::ApplyDenoising(*cache->LDec, copiedLuminanceThresholds);
 	std::vector<WaveletImage<pixel_t>>* denoisedA = FluxWaveletDenoising::ApplyDenoising(*cache->ADec, copiedChrominanceThresholds);
 	std::vector<WaveletImage<pixel_t>>* denoisedB = FluxWaveletDenoising::ApplyDenoising(*cache->BDec, copiedChrominanceThresholds);
@@ -82,4 +46,41 @@ ProcessingCacheEntry* DenoiseImageOperation::Run(ProcessingCacheEntry* previousC
 
 void DenoiseImageOperation::Dispose()
 {
+}
+
+void DenoiseImageOperation::DisposeCacheEntry(ProcessingCacheEntry* cache)
+{
+	//Dispose cache
+	WaveletCache* denoiseCache = (WaveletCache*)cache->Caches;
+	if (denoiseCache == nullptr)
+		return;
+
+	if (denoiseCache->LDec != nullptr) {
+		for (int i = 0; i < denoiseCache->LDec->size(); i++) {
+			denoiseCache->LDec->at(i).Dispose();
+		}
+		denoiseCache->LDec->clear();
+		denoiseCache->LDec = nullptr;
+	}
+
+	if (denoiseCache->ADec != nullptr) {
+		for (int i = 0; i < denoiseCache->ADec->size(); i++) {
+			denoiseCache->ADec->at(i).Dispose();
+		}
+		denoiseCache->ADec->clear();
+		denoiseCache->ADec = nullptr;
+	}
+
+	if (denoiseCache->BDec != nullptr) {
+		for (int i = 0; i < denoiseCache->BDec->size(); i++) {
+			denoiseCache->BDec->at(i).Dispose();
+		}
+		denoiseCache->BDec->clear();
+		denoiseCache->BDec = nullptr;
+	}
+
+	delete denoiseCache;
+
+	cache->Caches = nullptr;
+	cache->CachesCount = 0;
 }

@@ -12,4 +12,7 @@ public:
 
 	// Inherited via BaseImageOperation
 	virtual void Dispose() override;
+
+	// Inherited via BaseImageOperation
+	virtual void DisposeCacheEntry(ProcessingCacheEntry* cache) override;
 };

@@ -259,7 +259,8 @@ FluxImage* FluxImageProcessor::FastProcessToBitmap(ProcessingCache* cache, Proce
 	//So we get rid of everything we don't need until we encounter our cache that might be useful
 	for (int i = currentLayer.CachesCount - 1; i > correctionStage; i--)
 	{
-		DisposeStageCache(&currentLayer.Caches[i]);
+		s_Operations[i]->DisposeCacheEntry(&currentLayer.Caches[i]);
+		//DisposeStageCache(&currentLayer.Caches[i]);
 	}
 
 	ProcessSettingsLayer currentLayerSettings = settings->Layers[settings->ChangedLayer];
@@ -299,167 +300,18 @@ void FluxImageProcessor::DisposeLayer(ProcessingLayerCache* layer)
 {
 	for (int i = 0; i < layer->CachesCount; i++)
 	{
-		ProcessingCacheEntry& entry = layer->Caches[i];
-		DisposeStageCache(&entry);
+		s_Operations[i]->DisposeCacheEntry(&layer->Caches[i]);
+		//DisposeStageCache(&entry);
 	}
 }
 
-void FluxImageProcessor::DisposeStageCache(ProcessingCacheEntry* entry)
+void FluxImageProcessor::DisposeAllCache(ProcessingCache* cache)
 {
-	switch (entry->Stage)
+	int levelsDepth = cache->LayersCount;
+	for (int i = 0; i < levelsDepth; i++)
 	{
-		/*case ProcessingStage::NotSet:
-			return;
-
-		case ProcessingStage::Initial:
-			return;
-
-		case ProcessingStage::Resize: {
-			InternalLabImage* imageResized = (InternalLabImage*)entry->Caches;
-			delete[] imageResized->LPixels;
-			delete[] imageResized->APixels;
-			delete[] imageResized->BPixels;
-			delete imageResized;
-			return;
-		}
-
-		case ProcessingStage::Rotate:
-		{
-			InternalLabImage* imageRotated = (InternalLabImage*)entry->Caches;
-			delete[] imageRotated->LPixels;
-			delete[] imageRotated->APixels;
-			delete[] imageRotated->BPixels;
-			delete imageRotated;
-			return;
-		}*/
-
-
-	case ProcessingStage::Crop: {
-		InternalLabImage* imageCropped = (InternalLabImage*)entry->Caches;
-		delete[] imageCropped->LPixels;
-		delete[] imageCropped->APixels;
-		delete[] imageCropped->BPixels;
-		delete imageCropped;
-		return;
+		DisposeLayer(&cache->Layers[i]);
 	}
-
-
-	case ProcessingStage::Denoise: {
-		WaveletCache* cache = (WaveletCache*)entry->Caches;
-		for (int i = 0; i < cache->WaveletDecCount; i++)
-		{
-			cache->LDec->at(i).Dispose();
-			cache->ADec->at(i).Dispose();
-			cache->BDec->at(i).Dispose();
-
-		}
-		cache->LDec->clear();
-		cache->ADec->clear();
-		cache->BDec->clear();
-
-		delete cache->LDec;
-		delete cache->ADec;
-		delete cache->BDec;
-
-		delete cache;
-		return;
-	}
-
-
-								 /*case ProcessingStage::Dehaze: {
-									 InternalLabImage* imageDehazed = (InternalLabImage*)entry->Caches;
-									 delete[] imageDehazed->LPixels;
-									 delete[] imageDehazed->APixels;
-									 delete[] imageDehazed->BPixels;
-									 delete imageDehazed;
-									 return;
-								 }*/
-
-	case ProcessingStage::Details: {
-		WaveletCache* cache = (WaveletCache*)entry->Caches;
-		for (int i = 0; i < cache->WaveletDecCount; i++)
-		{
-			cache->LDec->at(i).Dispose();
-			cache->ADec->at(i).Dispose();
-			cache->BDec->at(i).Dispose();
-
-		}
-		cache->LDec->clear();
-		cache->ADec->clear();
-		cache->BDec->clear();
-
-		delete cache->LDec;
-		delete cache->ADec;
-		delete cache->BDec;
-
-		delete cache;
-		return;
-	}
-
-
-								 /*case ProcessingStage::Texture: {
-									 WaveletCache* cache = (WaveletCache*)entry->Caches;
-									 for (int i = 0; i < cache->WaveletDecCount; i++)
-									 {
-										 cache->LDec->at(i).Dispose();
-										 cache->ADec->at(i).Dispose();
-										 cache->BDec->at(i).Dispose();
-
-									 }
-									 cache->LDec->clear();
-									 cache->ADec->clear();
-									 cache->BDec->clear();
-
-									 delete cache->LDec;
-									 delete cache->ADec;
-									 delete cache->BDec;
-
-									 delete cache;
-									 return;
-								 }*/
-
-
-	case ProcessingStage::Lut: {
-		InternalLabImage* imageColorCorrected = (InternalLabImage*)entry->Caches;
-		delete[] imageColorCorrected->LPixels;
-		delete[] imageColorCorrected->APixels;
-		delete[] imageColorCorrected->BPixels;
-		delete imageColorCorrected;
-		return;
-	}
-
-	case ProcessingStage::WaveletDecompose: {
-		WaveletCache* cache = (WaveletCache*)entry->Caches;
-		for (int i = 0; i < cache->WaveletDecCount; i++)
-		{
-			cache->LDec->at(i).Dispose();
-			cache->ADec->at(i).Dispose();
-			cache->BDec->at(i).Dispose();
-
-		}
-		cache->LDec->clear();
-		cache->ADec->clear();
-		cache->BDec->clear();
-
-		delete cache->LDec;
-		delete cache->ADec;
-		delete cache->BDec;
-
-		delete cache;
-		return;
-	}
-
-	case ProcessingStage::WaveletCompose: {
-		InternalLabImage* imageColorCorrected = (InternalLabImage*)entry->Caches;
-		delete[] imageColorCorrected->LPixels;
-		delete[] imageColorCorrected->APixels;
-		delete[] imageColorCorrected->BPixels;
-		delete imageColorCorrected;
-		return;
-	}
-
-	default:
-		return;
-	}
-
+	delete[] cache->Layers;
+	delete cache;
 }

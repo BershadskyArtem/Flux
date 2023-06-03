@@ -38,23 +38,21 @@ int main()
 	ProcessSettings set = ProcessSettings();
 	set.Layers = new ProcessSettingsLayer[1]{};
 	set.Layers[0] = ProcessSettingsLayer();
-	set.Layers[0].Crop.LeftUpX = 500;
-	set.Layers[0].Crop.LeftUpY = 150;
-	set.Layers[0].Crop.RightDownX = 4000;
-	set.Layers[0].Crop.RightDownY = 3000;
+	set.Layers[0].Crop.LeftUpX = 0;
+	set.Layers[0].Crop.LeftUpY = 0;
+	set.Layers[0].Crop.RightDownX = image->Width;
+	set.Layers[0].Crop.RightDownY = image->Height;
 	set.Layers[0].Denoise.Chrominance = 0;
-
-
 
 	set.Layers[0].Resize.ResizeToX = 500;
 	set.Layers[0].Resize.ResizeToY = 500;
 	set.Layers[0].Resize.Mode = 1;
-	set.Layers[0].Resize.Scale = 1.f;
+	set.Layers[0].Resize.Scale = 0.25f;
 
 	//Max 40
-	set.Layers[0].Denoise.Luminance = 100;
-	set.Layers[0].Denoise.Chrominance = 100;
-	set.Layers[0].Texture.Amount = 200;
+	set.Layers[0].Denoise.Luminance = 0;
+	set.Layers[0].Denoise.Chrominance = 75;
+	set.Layers[0].Texture.Amount = 100;
 	set.Layers[0].Clarity.Amount = 200;
 	set.ChangedLayer = 0;
 	set.ChangedStage = ProcessingStage::Input;
@@ -67,7 +65,6 @@ int main()
 	FluxImage* processedImage = FluxImageProcessor::FastProcessToBitmap(cache, &set);
 	BenchmarkHelper::ShowDurationFinal(fastProcessFromGround, "Fast processing from ground up took... ");
 
-
 	set.ChangedStage = ProcessingStage::Lut;
 	auto lutOnlyStage = BenchmarkHelper::StartWatch();
 	FluxImage* processedImage2 = FluxImageProcessor::FastProcessToBitmap(cache, &set);
@@ -79,6 +76,7 @@ int main()
 	ImageInput::FreeFluxImage(image);
 	ImageInput::FreeFluxImage(processedImage);
 	ImageInput::FreeFluxImage(processedImage2);
+	FluxImageProcessor::DisposeAllCache(cache);
 
 	return 0;
 }

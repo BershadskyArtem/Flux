@@ -54,7 +54,7 @@ ProcessingCacheEntry* WaveletComposeImageOperation::Run(ProcessingCacheEntry* pr
 	result->Width = lMat.Width();
 	result->Height = lMat.Height();
 
-	
+
 	currentCachedStage->Caches = result;
 	denoiser.Dispose();
 	delete db4;
@@ -64,4 +64,17 @@ ProcessingCacheEntry* WaveletComposeImageOperation::Run(ProcessingCacheEntry* pr
 
 void WaveletComposeImageOperation::Dispose()
 {
+}
+
+void WaveletComposeImageOperation::DisposeCacheEntry(ProcessingCacheEntry* cache)
+{
+	if (cache->Caches == nullptr)
+		return;
+	InternalLabImage* labToDelete = (InternalLabImage*)cache->Caches;
+	delete[] labToDelete->LPixels;
+	delete[] labToDelete->APixels;
+	delete[] labToDelete->BPixels;
+	delete labToDelete;
+	cache->Caches = nullptr;
+	cache->CachesCount = 0;
 }

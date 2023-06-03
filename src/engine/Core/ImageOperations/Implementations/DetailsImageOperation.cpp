@@ -1,11 +1,12 @@
 #include "DetailsImageOperation.h"
+#include "../../Filters/BoxBlur.h"
 
 //1.6, 1.3, 1.0, 1.0
 //1.0f ,1.0f ,1.225f ,1.125f
 //std::vector<pixel_t> DetailsImageOperation::s_SharpenMultipliers = { 1.6f ,1.3f ,1.0f ,1.0f, 1.0f ,1.0f , 1.0f ,1.0f , 1.0f ,1.0f , 1.0f ,1.0f };
-std::vector<pixel_t> DetailsImageOperation::s_SharpenMultipliers = { 1.01f ,1.3f ,1.3f ,1.0f, 1.0f ,1.0f , 1.0f ,1.0f , 1.0f ,1.0f , 1.0f ,1.0f };
+std::vector<pixel_t> DetailsImageOperation::s_SharpenMultipliers = { 1.0f ,1.2f ,1.15f ,1.1f, 1.0f ,1.0f , 1.0f ,1.0f , 1.0f ,1.0f , 1.0f ,1.0f };
 //std::vector<pixel_t> DetailsImageOperation::s_TextureMultipliers = { 1.0f ,1.0f ,1.225f ,1.125f, 1.0f ,1.0f, 1.0f ,1.0f, 1.0f ,1.0f };
-std::vector<pixel_t> DetailsImageOperation::s_TextureMultipliers = { 1.0f ,1.0f ,1.0 ,1.125f, 1.05f ,1.0f, 1.0f ,1.0f, 1.0f ,1.0f };
+std::vector<pixel_t> DetailsImageOperation::s_TextureMultipliers = { 1.0f ,1.0f ,1.0f ,1.0f, 1.0f ,1.0f, 1.0f ,1.0f, 1.0f ,1.0f };
 
 WaveletImage<pixel_t>* DetailsImageOperation::ApplyToLevel(WaveletImage<pixel_t>& image, pixel_t value)
 {
@@ -101,6 +102,60 @@ WaveletImage<pixel_t>* DetailsImageOperation::ApplyToLevel(WaveletImage<pixel_t>
 	return result;
 }
 
+WaveletImage<pixel_t>* DetailsImageOperation::UnsharpMaskToLevel(WaveletImage<pixel_t>& image, int level, pixel_t value)
+{
+	const int w = image.Width;
+	const int h = image.Height;
+	//WaveletImage<pixel_t> unsharpMask = WaveletImage<pixel_t>(w, h);
+
+
+	return nullptr;
+}
+
+Matrix<pixel_t>* DetailsImageOperation::UnsharpMaskToMatrix(Matrix<pixel_t>& image, int level, pixel_t value)
+{
+	const int w = image.Width();
+	const int h = image.Height();
+	Matrix<pixel_t>* blurredMat = new Matrix<pixel_t>(w, h);
+	Matrix<pixel_t>* outputMat = new Matrix<pixel_t>(w, h);
+
+	BoxBlur::Blur(image, *blurredMat, 2);
+
+	pixel_t* inputPixels = image.GetPointer();
+	pixel_t* blurredPixels = blurredMat->GetPointer();
+	pixel_t* outputPixels = outputMat->GetPointer();
+	
+	vfloat valueV = value;
+	const int inc = vfloat::size;
+	//Apply unsharp mask
+#pragma omp parallel for
+	for (int y = 0; y < h; y++)
+	{
+		const int startOfLine = y * w;
+		int x = 0;
+		for (; x < w - inc; x+=inc)
+		{
+			const int idx = startOfLine + x;
+			vfloat inputV = vfloat::load_aligned(&inputPixels[idx]);
+			vfloat blurredV = vfloat::load_aligned(&blurredPixels[idx]);
+			inputV = inputV + (inputV - blurredV) * valueV;
+			inputV.store_aligned(&outputPixels[idx]);
+		}
+
+		for (; x < w; x++)
+		{
+			const int idx = startOfLine + x;
+			pixel_t inputV = inputPixels[idx];
+			pixel_t blurredV = blurredPixels[idx];
+			inputV = inputV + (inputV - blurredV) * value;
+			outputPixels[idx] = inputV;
+		}
+	}
+	blurredMat->Dispose();
+
+	return outputMat;
+}
+
 ProcessingCacheEntry* DetailsImageOperation::Run(ProcessingCacheEntry* previousCachedStage, ProcessingCacheEntry* currentCachedStage, ProcessSettingsLayer* newSettings)
 {
 	pixel_t sharpen = newSettings->Clarity.Amount / 100.f;
@@ -111,32 +166,7 @@ ProcessingCacheEntry* DetailsImageOperation::Run(ProcessingCacheEntry* previousC
 	//Current cache is useless
 	WaveletCache* cacheToDelete = (WaveletCache*)currentCachedStage->Caches;
 
-	if (cacheToDelete != nullptr) {
-		for (int i = 0; i < cacheToDelete->LDec->size(); i++)
-		{
-			cacheToDelete->LDec->at(i).Dispose();
-		}
-		cacheToDelete->LDec->clear();
-
-		for (int i = 0; i < cacheToDelete->ADec->size(); i++)
-		{
-			cacheToDelete->ADec->at(i).Dispose();
-		}
-		cacheToDelete->ADec->clear();
-
-
-		for (int i = 0; i < cacheToDelete->BDec->size(); i++)
-		{
-			cacheToDelete->BDec->at(i).Dispose();
-		}
-		cacheToDelete->BDec->clear();
-
-		delete cacheToDelete->LDec;
-		delete cacheToDelete->ADec;
-		delete cacheToDelete->BDec;
-
-		delete cacheToDelete;
-	}
+	DisposeCacheEntry(currentCachedStage);
 
 	//Use previous cache
 	WaveletCache* cache = (WaveletCache*)previousCachedStage->Caches;
@@ -191,4 +221,31 @@ ProcessingCacheEntry* DetailsImageOperation::Run(ProcessingCacheEntry* previousC
 
 void DetailsImageOperation::Dispose()
 {
+}
+
+void DetailsImageOperation::DisposeCacheEntry(ProcessingCacheEntry* cache)
+{
+	WaveletCache* cacheToDelete = (WaveletCache*)cache->Caches;
+
+	if (cacheToDelete == nullptr)
+		return;
+
+	for (int i = 0; i < cacheToDelete->LDec->size(); i++) {
+		cacheToDelete->LDec->at(i).Dispose();
+		cacheToDelete->ADec->at(i).Dispose();
+		cacheToDelete->BDec->at(i).Dispose();
+	}
+
+	cacheToDelete->LDec->clear();
+	cacheToDelete->ADec->clear();
+	cacheToDelete->BDec->clear();
+
+	delete cacheToDelete->LDec;
+	delete cacheToDelete->ADec;
+	delete cacheToDelete->BDec;
+	delete cacheToDelete;
+
+	cacheToDelete = nullptr;
+	cache->Caches = nullptr;
+	cache->CachesCount = 0;
 }

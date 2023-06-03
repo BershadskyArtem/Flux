@@ -11,11 +11,12 @@ void ResizeImageOperation::Subsample(Matrix<pixel_t>& input, Matrix<pixel_t>& ou
 	const pixel_t* inputPixels = input.GetPointer();
 	pixel_t* outputPixels = output.GetPointer();
 
+#pragma omp parallel for
 	for (int y = 0; y < newHeight; y++)
 	{
 		int newStartOfLine = y * newWidth;
 		const int yPrev = std::floor(y / subsamplingY);
-		
+
 		for (int x = 0; x < newWidth; x++)
 		{
 			const int idx = newStartOfLine + x;
@@ -23,26 +24,11 @@ void ResizeImageOperation::Subsample(Matrix<pixel_t>& input, Matrix<pixel_t>& ou
 			outputPixels[idx] = inputPixels[yPrev * oldWidth + xPrev];
 		}
 	}
-
-
-	
-
 }
 
 ProcessingCacheEntry* ResizeImageOperation::Run(ProcessingCacheEntry* previousCachedStage, ProcessingCacheEntry* currentCachedStage, ProcessSettingsLayer* newSettings)
 {
-	//We need to dispose old cache 
-	if (currentCachedStage->Caches != nullptr) {
-		auto cacheToDelete = (InternalLabImage*)currentCachedStage->Caches;
-		if (cacheToDelete->LPixels != nullptr)
-			delete[] cacheToDelete->LPixels;
-		if (cacheToDelete->APixels != nullptr)
-			delete[] cacheToDelete->APixels;
-		if (cacheToDelete->BPixels != nullptr)
-			delete[] cacheToDelete->BPixels;
-		delete cacheToDelete;
-	}
-
+	DisposeCacheEntry(currentCachedStage);
 
 	InternalLabImage* previousStageCache = (InternalLabImage*)previousCachedStage->Caches;
 	const int oldWidth = previousStageCache->Width;
@@ -71,15 +57,15 @@ ProcessingCacheEntry* ResizeImageOperation::Run(ProcessingCacheEntry* previousCa
 	InternalLabImage* newCache = new InternalLabImage();
 	newCache->Width = newWidth;
 	newCache->Height = newHeight;
-	
+
 	const int boxWidth = std::ceil(1 / scaleX);
 	const int boxHeight = std::ceil(1 / scaleY);
 
 
 	bool suppressBluring = boxWidth <= 1 || boxHeight <= 1;
-	
+
 	if (suppressBluring) {
-		
+
 	}
 
 
@@ -100,27 +86,28 @@ ProcessingCacheEntry* ResizeImageOperation::Run(ProcessingCacheEntry* previousCa
 	Matrix<pixel_t> inputL = Matrix<pixel_t>(oldWidth, oldHeight, previousStageCache->LPixels);
 	if (!suppressBluring) {
 		BoxBlur::Blur(inputL, bufferMat, boxBlurRadius);
-		Subsample(bufferMat, outputL, 1.0 / scaleX, 1.0 / scaleY);
-	}else
-		Subsample(inputL, outputL, 1.0 / scaleX, 1.0 / scaleY);
+		Subsample(bufferMat, outputL, scaleX, scaleY);
+	}
+	else
+		Subsample(inputL, outputL, scaleX, scaleY);
 	//Resize A
 	Matrix<pixel_t> inputA = Matrix<pixel_t>(oldWidth, oldHeight, previousStageCache->APixels);
 	if (!suppressBluring) {
 		BoxBlur::Blur(inputA, bufferMat, boxBlurRadius);
-		Subsample(bufferMat, outputA, 1.0 / scaleX, 1.0 / scaleY);
+		Subsample(bufferMat, outputA, scaleX, scaleY);
 	}
 	else
-		Subsample(inputA, outputA, 1.0 / scaleX, 1.0 / scaleY);
+		Subsample(inputA, outputA, scaleX, scaleY);
 	//Resize B
 	Matrix<pixel_t> inputB = Matrix<pixel_t>(oldWidth, oldHeight, previousStageCache->BPixels);
 	if (!suppressBluring) {
 		BoxBlur::Blur(inputB, bufferMat, boxBlurRadius);
-		Subsample(bufferMat, outputB, 1.0 / scaleX, 1.0 / scaleY);
+		Subsample(bufferMat, outputB, scaleX, scaleY);
 	}
 	else
-		Subsample(inputB, outputB, 1.0 / scaleX, 1.0 / scaleY);
+		Subsample(inputB, outputB, scaleX, scaleY);
 
-	if(!suppressBluring)
+	if (!suppressBluring)
 		delete[] buffer;
 
 	newCache->LPixels = outputL.GetPointer();
@@ -136,3 +123,21 @@ ProcessingCacheEntry* ResizeImageOperation::Run(ProcessingCacheEntry* previousCa
 void ResizeImageOperation::Dispose()
 {
 }
+
+void ResizeImageOperation::DisposeCacheEntry(ProcessingCacheEntry* cache)
+{
+	//We need to dispose old cache 
+	if (cache->Caches == nullptr)
+		return;
+	InternalLabImage* cacheToDelete = (InternalLabImage*)cache->Caches;
+	if (cacheToDelete->LPixels != nullptr)
+		delete[] cacheToDelete->LPixels;
+	if (cacheToDelete->APixels != nullptr)
+		delete[] cacheToDelete->APixels;
+	if (cacheToDelete->BPixels != nullptr)
+		delete[] cacheToDelete->BPixels;
+	delete cacheToDelete;
+	cache->Caches = nullptr;
+	cache->CachesCount = 0;
+}
+

@@ -12,4 +12,7 @@ class LutImageOperation : public BaseImageOperation {
 	void ElevateBrightness(pixel_t l, pixel_t a, pixel_t b, LUTProcessingSettings &settings);
 	virtual ProcessingCacheEntry* Run(ProcessingCacheEntry* previousCachedStage, ProcessingCacheEntry* currentCachedStage, ProcessSettingsLayer* newSettings) override;
 	virtual void Dispose() override;
+
+	// Inherited via BaseImageOperation
+	virtual void DisposeCacheEntry(ProcessingCacheEntry* cache) override;
 };

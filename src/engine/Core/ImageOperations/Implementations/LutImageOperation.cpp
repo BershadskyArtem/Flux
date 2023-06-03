@@ -1,11 +1,12 @@
 #include "LutImageOperation.h"
+#include "LutImageOperation.h"
 #include "../../../Color/FluxColorMath.h"
+#include "../../../infrastructure/BenchmarkHelper.h"
 
 pixel_t LutImageOperation::GetBrightnessUsingColorMask(pixel_t l, pixel_t c, pixel_t h, HSLColorProcessingSettings& settings)
 {
 	pixel_t colorFactor = FluxColorMath::IsInsideHueChrominanceBoundary(h, c, settings.SelectedColor);
-
-
+	
 
 	return 0.0f;
 }
@@ -32,7 +33,7 @@ void LutImageOperation::ElevateBrightness(pixel_t l, pixel_t a, pixel_t b, LUTPr
 	pixel_t contrastCurveAtPoint = FluxMath::ContrastSmoothstep(currentLuma);
 	currentLuma = FluxMath::LinearInterpolate(contrast, contrastCurveAtPoint, currentLuma);
 	//settings.HSLSettings.
-	//HSL
+	//HSL corrections 
 	pixel_t v = GetBrightnessUsingColorMask(l, a, b, settings.HSLSettings.Red);
 
 }
@@ -136,15 +137,16 @@ ProcessingCacheEntry* LutImageOperation::Run(ProcessingCacheEntry* previousCache
 	pixel_t* gPix = new pixel_t[w * h]{};
 	pixel_t* bPix = new pixel_t[w * h]{};
 
+	//auto oklab2rgbtime = BenchmarkHelper::StartWatch();
+
 	Converter::OKLab2RGB(previousCache->LPixels, previousCache->APixels, previousCache->BPixels, rPix, gPix, bPix, w, h);
 	
+	//BenchmarkHelper::ShowDurationFinal(oklab2rgbtime, "OkLAB to RGB took...");
+
 	//std::string outputFilePath2 = "C:\\Users\\Artyom\\Downloads\\Lena-R.jpg";
 	//JpegImageEncoder encoder1 = JpegImageEncoder((pixel_t*)rPix, w, h, 1);	
 	//encoder1.Init();
 	//encoder1.FastSave(outputFilePath2);
-
-
-
 	//Apply 3D luts 
 	LUTf3d::ApplyLUTs(rPix, gPix, bPix, currentCache->RPixels, currentCache->GPixels, currentCache->BPixels, *lutL, *lutA, *lutB, w, h);
 
@@ -178,4 +180,24 @@ ProcessingCacheEntry* LutImageOperation::Run(ProcessingCacheEntry* previousCache
 
 void LutImageOperation::Dispose()
 {
+}
+
+void LutImageOperation::DisposeCacheEntry(ProcessingCacheEntry* cache)
+{
+	if (cache->Caches == nullptr)
+		return;
+
+	InternalImageData* currentCache = (InternalImageData*)cache->Caches;
+
+	if (currentCache->RPixels != nullptr) {
+		delete[] currentCache->RPixels;
+	}
+	if (currentCache->GPixels != nullptr) {
+		delete[] currentCache->GPixels;
+	}
+	if (currentCache->BPixels != nullptr) {
+		delete[] currentCache->BPixels;
+	}
+
+	delete currentCache;
 }
