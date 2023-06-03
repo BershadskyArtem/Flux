@@ -1,17 +1,24 @@
 #include "LutImageOperation.h"
 #include "LutImageOperation.h"
+#include "LutImageOperation.h"
+#include "LutImageOperation.h"
 #include "../../../Color/FluxColorMath.h"
 #include "../../../infrastructure/BenchmarkHelper.h"
 
 pixel_t LutImageOperation::GetBrightnessUsingColorMask(pixel_t l, pixel_t c, pixel_t h, HSLColorProcessingSettings& settings)
 {
-	pixel_t colorFactor = FluxColorMath::IsInsideHueChrominanceBoundary(h, c, settings.SelectedColor);
-	
-
-	return 0.0f;
+	return FluxColorMath::IsInsideHueChrominanceBoundary(h, c, settings.SelectedColor);
 }
 
-void LutImageOperation::ElevateBrightness(pixel_t l, pixel_t a, pixel_t b, LUTProcessingSettings& settings)
+/// <summary>
+/// Applies HSL luminocity, HDR, exp, brightness and contrast.
+/// </summary>
+/// <param name="l"></param>
+/// <param name="a"></param>
+/// <param name="b"></param>
+/// <param name="settings"></param>
+/// <returns></returns>
+pixel_t LutImageOperation::ElevateBrightness(pixel_t l, pixel_t a, pixel_t b, LUTProcessingSettings& settings)
 {
 	pixel_t elevateAmount = 0.f;
 	pixel_t chrominance = 0.f;
@@ -25,17 +32,115 @@ void LutImageOperation::ElevateBrightness(pixel_t l, pixel_t a, pixel_t b, LUTPr
 	currentLuma = luma * std::pow(2, settings.LightSettings.Exposure);
 	//Then brightness
 	float brightness = settings.LightSettings.Brightness / 100.f;
-	brightness = 1 - brightness;
+	
 	//Gamma = brightness
-	currentLuma = std::pow(currentLuma, brightness);
+	// 
+	//currentLuma = std::pow(currentLuma, brightness);
+	// 
 	//Then contrast
+
 	pixel_t contrast = settings.LightSettings.Contrast / 100.f;
 	pixel_t contrastCurveAtPoint = FluxMath::ContrastSmoothstep(currentLuma);
 	currentLuma = FluxMath::LinearInterpolate(contrast, contrastCurveAtPoint, currentLuma);
+
+	pixel_t totalElevation = 1.f;
+
+	pixel_t whFactor = FluxMath::DualSmoothstep(luma, 1.f, 0.9f, -0.85f);
+	pixel_t hiFactor = FluxMath::DualSmoothstep(luma, 1.f, 0.9f, -0.75f);
+	pixel_t blFactor = FluxMath::DualSmoothstep(luma, 0.f, 0.4f, -0.37f);
+	pixel_t shFactor = FluxMath::DualSmoothstep(luma, 0.f, 0.5f, -0.45f);
+
+	totalElevation -= whFactor * settings.HDRSettings.Whites / 100.f +
+		blFactor * settings.HDRSettings.Blacks / 100.f +
+		hiFactor * settings.HDRSettings.Highlights / 100.f +
+		shFactor * settings.HDRSettings.Shadows / 100.f;
+
 	//settings.HSLSettings.
 	//HSL corrections 
-	pixel_t v = GetBrightnessUsingColorMask(l, a, b, settings.HSLSettings.Red);
+	pixel_t colorFactorr = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Red);
+	pixel_t colorFactoro = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Orange);
+	pixel_t colorFactory = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Yellow);
+	pixel_t colorFactorg = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Green);
+	pixel_t colorFactora = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Aqua);
+	pixel_t colorFactorb = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Blue);
+	pixel_t colorFactorm = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Magenta);
+	pixel_t colorFactorp = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Purple);
 
+	totalElevation -= brightness + colorFactorr * settings.HSLSettings.Red.Lightness / 100.f +
+		colorFactoro * settings.HSLSettings.Orange.Lightness / 100.f +
+		colorFactory * settings.HSLSettings.Yellow.Lightness / 100.f +
+		colorFactorg * settings.HSLSettings.Green.Lightness / 100.f +
+		colorFactora * settings.HSLSettings.Aqua.Lightness / 100.f +
+		colorFactorb * settings.HSLSettings.Blue.Lightness / 100.f +
+		colorFactorm * settings.HSLSettings.Magenta.Lightness / 100.f +
+		colorFactorp * settings.HSLSettings.Purple.Lightness / 100.f;
+
+	for (int i = 0; i < settings.HSLSettings.CustomColorsCount; i++)
+	{
+		totalElevation -= GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.CustomColors[i]) 
+			* settings.HSLSettings.CustomColors[i].Lightness / 100.f;
+	}
+
+	totalElevation = std::max(totalElevation, 0.0001f);
+	totalElevation = std::min(totalElevation, 1000.f);
+	
+	currentLuma = std::pow(currentLuma, totalElevation);
+	
+	return currentLuma;
+}
+
+pixel_t LutImageOperation::ElevateHue(pixel_t l, pixel_t a, pixel_t b, LUTProcessingSettings& settings)
+{
+	pixel_t elevateAmount = 0.f;
+	pixel_t chrominance = 0.f;
+	pixel_t hue = 0.f;
+	pixel_t luma = 0.f;
+	pixel_t currentHue = 0.f;
+
+	Converter::OkLab2OkLCh(l, a, b, luma, chrominance, hue);
+
+
+	pixel_t colorFactorr = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Red);
+	pixel_t colorFactoro = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Orange);
+	pixel_t colorFactory = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Yellow);
+	pixel_t colorFactorg = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Green);
+	pixel_t colorFactora = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Aqua);
+	pixel_t colorFactorb = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Blue);
+	pixel_t colorFactorm = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Magenta);
+	pixel_t colorFactorp = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Purple);
+
+	pixel_t totalElevation = 0;
+
+	totalElevation += colorFactorr * settings.HSLSettings.Red.HueShift / (2 * PI) +
+		colorFactoro * settings.HSLSettings.Orange.Lightness / (2 * PI) +
+		colorFactory * settings.HSLSettings.Yellow.Lightness / (2 * PI) +
+		colorFactorg * settings.HSLSettings.Green.Lightness / (2 * PI) +
+		colorFactora * settings.HSLSettings.Aqua.Lightness / (2 * PI) +
+		colorFactorb * settings.HSLSettings.Blue.Lightness / (2 * PI) +
+		colorFactorm * settings.HSLSettings.Magenta.Lightness / (2 * PI) +
+		colorFactorp * settings.HSLSettings.Purple.Lightness / (2 * PI);
+
+	for (int i = 0; i < settings.HSLSettings.CustomColorsCount; i++)
+	{
+		totalElevation += GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.CustomColors[i])
+			* settings.HSLSettings.CustomColors[i].HueShift / (2 * PI);
+	}
+
+	currentHue = hue + totalElevation;
+	return currentHue;
+
+}
+
+pixel_t LutImageOperation::ElevateSaturation(pixel_t l, pixel_t a, pixel_t b, LUTProcessingSettings& settings)
+{
+
+	pixel_t sF = 0;
+	pixel_t lF = 0;
+	pixel_t hF = 0;
+
+
+
+	return pixel_t();
 }
 
 
@@ -112,10 +217,22 @@ ProcessingCacheEntry* LutImageOperation::Run(ProcessingCacheEntry* previousCache
 				pixel_t aPix = 0;
 				pixel_t bPix = 0;
 
-				Converter::RGB2OKLab(rF, gF, bF, lPix, aPix, bPix);
-				
-				//ElevateBrightness(lPix, aPix, bPix, settings);
+				pixel_t lPixFinal = 0;
+				pixel_t hPixFinal = 0;
+				pixel_t sPixFinal = 0;
 
+				Converter::RGB2OKLab(rF, gF, bF, lPix, aPix, bPix);
+
+				lPixFinal = ElevateBrightness(lPix, aPix, bPix, settings);
+				hPixFinal = ElevateHue(lPix, aPix, bPix, settings);
+				sPixFinal = ElevateSaturation(lPix, aPix, bPix, settings);
+
+
+				Converter::OKLab2RGB(lPixFinal, hPixFinal, bPix, rF, gF, bF);
+
+				rF = std::max(std::min(rF, 1.f), 0.f);
+				gF = std::max(std::min(gF, 1.f), 0.f);
+				bF = std::max(std::min(bF, 1.f), 0.f);
 
 				rF = Converter::RGB2sRGB(rF);
 				gF = Converter::RGB2sRGB(gF);
@@ -140,7 +257,7 @@ ProcessingCacheEntry* LutImageOperation::Run(ProcessingCacheEntry* previousCache
 	//auto oklab2rgbtime = BenchmarkHelper::StartWatch();
 
 	Converter::OKLab2RGB(previousCache->LPixels, previousCache->APixels, previousCache->BPixels, rPix, gPix, bPix, w, h);
-	
+
 	//BenchmarkHelper::ShowDurationFinal(oklab2rgbtime, "OkLAB to RGB took...");
 
 	//std::string outputFilePath2 = "C:\\Users\\Artyom\\Downloads\\Lena-R.jpg";

@@ -39,6 +39,11 @@ public:
 
 		pixel_t targetHue = NormalizeOkHue(h);
 
+
+		if (leftHue == rightHue)
+			return 0;
+	
+
 		if (leftHue <= rightHue) {
 			hueBorderRadius = rightHue - leftHue;
 		}
@@ -46,8 +51,8 @@ public:
 			hueBorderRadius = std::abs(360 - leftHue) + rightHue;
 		}
 
-		
-		pixel_t smoothness = settings.Smoothness;
+		pixel_t smoothness = settings.Smoothness + 0.000001f;
+
 		pixel_t resultingFactor = 1.0f;
 
 		//Evaluate HUE

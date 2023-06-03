@@ -47,7 +47,14 @@ int main()
 	set.Layers[0].Resize.ResizeToX = 500;
 	set.Layers[0].Resize.ResizeToY = 500;
 	set.Layers[0].Resize.Mode = 1;
-	set.Layers[0].Resize.Scale = 0.25f;
+	set.Layers[0].Resize.Scale = 0.55f;
+
+	set.Layers[0].LUT.LightSettings.Exposure = 0.f;
+	set.Layers[0].LUT.LightSettings.Contrast = 0;
+	set.Layers[0].LUT.LightSettings.Brightness = 0;
+	
+	set.Layers[0].LUT.HDRSettings.Shadows = 24;
+	
 
 	//Max 40
 	set.Layers[0].Denoise.Luminance = 0;
