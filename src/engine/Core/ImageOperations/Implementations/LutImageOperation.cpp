@@ -17,6 +17,7 @@ pixel_t LutImageOperation::GetBrightnessUsingColorMask(pixel_t l, pixel_t c, pix
 /// <returns></returns>
 pixel_t LutImageOperation::ElevateBrightness(const OkLChColor& color, LUTProcessingSettings& settings)
 {
+	const pixel_t divisor = 250.f;
 	pixel_t elevateAmount = 0.f;
 	pixel_t chrominance = color.C;
 	pixel_t hue = color.H;
@@ -28,7 +29,7 @@ pixel_t LutImageOperation::ElevateBrightness(const OkLChColor& color, LUTProcess
 	//Exposure
 	currentLuma = luma * std::pow(2, settings.LightSettings.Exposure);
 	//Then brightness
-	float brightness = settings.LightSettings.Brightness / 100.f;
+	float brightness = settings.LightSettings.Brightness / divisor;
 	
 	//Gamma = brightness
 	// 
@@ -36,21 +37,21 @@ pixel_t LutImageOperation::ElevateBrightness(const OkLChColor& color, LUTProcess
 	// 
 	//Then contrast
 
-	pixel_t contrast = settings.LightSettings.Contrast / 100.f;
+	pixel_t contrast = settings.LightSettings.Contrast / divisor;
 	pixel_t contrastCurveAtPoint = FluxMath::ContrastSmoothstep(currentLuma);
 	currentLuma = FluxMath::LinearInterpolate(contrast, contrastCurveAtPoint, currentLuma);
 
 	pixel_t totalElevation = 1.f;
-
+	
 	pixel_t whFactor = FluxMath::DualSmoothstep(luma, 1.f, 0.9f, -0.85f);
 	pixel_t hiFactor = FluxMath::DualSmoothstep(luma, 1.f, 0.9f, -0.75f);
 	pixel_t blFactor = FluxMath::DualSmoothstep(luma, 0.f, 0.4f, -0.37f);
 	pixel_t shFactor = FluxMath::DualSmoothstep(luma, 0.f, 0.5f, -0.45f);
 
-	totalElevation -= whFactor * settings.HDRSettings.Whites / 100.f +
-		blFactor * settings.HDRSettings.Blacks / 100.f +
-		hiFactor * settings.HDRSettings.Highlights / 100.f +
-		shFactor * settings.HDRSettings.Shadows / 100.f;
+	totalElevation -= whFactor * settings.HDRSettings.Whites / divisor +
+		blFactor * settings.HDRSettings.Blacks / divisor +
+		hiFactor * settings.HDRSettings.Highlights / divisor +
+		shFactor * settings.HDRSettings.Shadows / divisor;
 
 	//settings.HSLSettings.
 	//HSL corrections 
@@ -63,19 +64,19 @@ pixel_t LutImageOperation::ElevateBrightness(const OkLChColor& color, LUTProcess
 	pixel_t colorFactorm = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Magenta);
 	pixel_t colorFactorp = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Purple);
 
-	totalElevation -= brightness + colorFactorr * settings.HSLSettings.Red.Lightness / 100.f +
-		colorFactoro * settings.HSLSettings.Orange.Lightness / 100.f +
-		colorFactory * settings.HSLSettings.Yellow.Lightness / 100.f +
-		colorFactorg * settings.HSLSettings.Green.Lightness / 100.f +
-		colorFactora * settings.HSLSettings.Aqua.Lightness / 100.f +
-		colorFactorb * settings.HSLSettings.Blue.Lightness / 100.f +
-		colorFactorm * settings.HSLSettings.Magenta.Lightness / 100.f +
-		colorFactorp * settings.HSLSettings.Purple.Lightness / 100.f;
+	totalElevation -= brightness + colorFactorr * settings.HSLSettings.Red.Lightness / divisor +
+		colorFactoro * settings.HSLSettings.Orange.Lightness / divisor +
+		colorFactory * settings.HSLSettings.Yellow.Lightness / divisor +
+		colorFactorg * settings.HSLSettings.Green.Lightness / divisor +
+		colorFactora * settings.HSLSettings.Aqua.Lightness / divisor +
+		colorFactorb * settings.HSLSettings.Blue.Lightness / divisor +
+		colorFactorm * settings.HSLSettings.Magenta.Lightness / divisor +
+		colorFactorp * settings.HSLSettings.Purple.Lightness / divisor;
 
 	for (int i = 0; i < settings.HSLSettings.CustomColorsCount; i++)
 	{
 		totalElevation -= GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.CustomColors[i]) 
-			* settings.HSLSettings.CustomColors[i].Lightness / 100.f;
+			* settings.HSLSettings.CustomColors[i].Lightness / divisor;
 	}
 
 	totalElevation = std::max(totalElevation, 0.0001f);
@@ -145,26 +146,28 @@ pixel_t LutImageOperation::ElevateSaturation(const OkLChColor& color, LUTProcess
 	pixel_t colorFactorm = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Magenta);
 	pixel_t colorFactorp = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Purple);
 	
-	pixel_t vibranceFactor = FluxMath::DualSmoothstep(chrominance, 0.08f, 0.045f, 0.008f - 0.045f);
+	pixel_t vibranceFactor = FluxMath::DualSmoothstep(chrominance, 0.1f, 0.1f, -0.1f);
 	
 	pixel_t chrominanceElevation = 1;
+	const pixel_t divisor = 100.0f;
 
-	chrominanceElevation += colorFactorr * settings.HSLSettings.Red.Saturation / 100.f +
-		colorFactoro * settings.HSLSettings.Orange.Lightness / 100.f +
-		colorFactory * settings.HSLSettings.Yellow.Lightness / 100.f +
-		colorFactorg * settings.HSLSettings.Green.Lightness / 100.f +
-		colorFactora * settings.HSLSettings.Aqua.Lightness / 100.f +
-		colorFactorb * settings.HSLSettings.Blue.Lightness / 100.f +
-		colorFactorm * settings.HSLSettings.Magenta.Lightness / 100.f +
-		colorFactorp * settings.HSLSettings.Purple.Lightness / 100.f;
+	chrominanceElevation += (settings.BasicColorSettings.Vibrance / divisor) * vibranceFactor +
+		colorFactorr * settings.HSLSettings.Red.Saturation / divisor +
+		colorFactoro * settings.HSLSettings.Orange.Saturation / divisor +
+		colorFactory * settings.HSLSettings.Yellow.Saturation / divisor +
+		colorFactorg * settings.HSLSettings.Green.Saturation / divisor +
+		colorFactora * settings.HSLSettings.Aqua.Saturation / divisor +
+		colorFactorb * settings.HSLSettings.Blue.Saturation / divisor +
+		colorFactorm * settings.HSLSettings.Magenta.Saturation / divisor +
+		colorFactorp * settings.HSLSettings.Purple.Saturation / divisor;
 
 	for (int i = 0; i < settings.HSLSettings.CustomColorsCount; i++)
 	{
 		chrominanceElevation += GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.CustomColors[i])
-			* settings.HSLSettings.CustomColors[i].Saturation / 100.f;
+			* settings.HSLSettings.CustomColors[i].Saturation / divisor;
 	}
 
-	return std::clamp(saturationElevation * chrominance, 0.0f, 0.37f);
+	return std::clamp(chrominanceElevation * chrominance, 0.0f, 0.5f);
 }
 
 
@@ -239,11 +242,12 @@ ProcessingCacheEntry* LutImageOperation::Run(ProcessingCacheEntry* previousCache
 
 				//Evaluate
 				pixel_t lPixFinal = ElevateBrightness(inlchColor, settings);
-				pixel_t hPixFinal = ElevateHue(inlchColor, settings);
+				//pixel_t hPixFinal = ElevateHue(inlchColor, settings);
+				pixel_t hPixFinal = inlchColor.H;
 				pixel_t cPixFinal = ElevateSaturation(inlchColor, settings);
 
 				//Convert back
-				OkLChColor outLChColor = OkLChColor(lPixFinal, hPixFinal, cPixFinal);
+				OkLChColor outLChColor = OkLChColor(lPixFinal, cPixFinal, hPixFinal);
 				sRGBColor outColor = outLChColor.TosRGB();
 
 				//Output

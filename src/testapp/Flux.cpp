@@ -5,6 +5,7 @@
 #include "../engine/Core/FluxImageProcessor.h"
 #include "../engine/Core//Filters/BoxBlur.h"
 #include "../engine/Color/FluxColorMath.h"
+#include "../engine/Color/Colors.h"
 
 
 #define _USE_MATH_DEFINES
@@ -52,9 +53,26 @@ int main()
 	set.Layers[0].LUT.LightSettings.Exposure = 0.f;
 	set.Layers[0].LUT.LightSettings.Contrast = 0;
 	set.Layers[0].LUT.LightSettings.Brightness = 0;
+	set.Layers[0].LUT.BasicColorSettings.Vibrance = 100;
 	
-	set.Layers[0].LUT.HDRSettings.Shadows = 24;
+	set.Layers[0].LUT.HDRSettings.Shadows = 50;
+	set.Layers[0].LUT.HDRSettings.Highlights = -75;
 	
+	RGBColor c = RGBColor(9/255.f, 26 / 255.f, 46 / 255.f);
+	auto c2 = c.ToOkLCh();
+	std::cout << c2.L << '\t' << c2.C << '\t' << c2.H << '\t' << endl;
+	c2.C += 0.05f;
+	auto triplet2 = c2.ToRGB().ToColorTriplet();
+	std::cout << (int)triplet2.R << '\t' << (int)triplet2.G << '\t' << (int)triplet2.B << '\t' << endl;
+
+
+	RGBColor c3 = RGBColor(32 / 255.f, 50 / 255.f, 74 / 255.f);
+	auto c4 = c3.ToOkLCh();
+	std::cout << c4.L << '\t' << c4.C << '\t' << c4.H << '\t' << endl;
+
+	c4.C += 0.05f;
+	auto triplet1 = c4.ToRGB().ToColorTriplet();
+	std::cout << (int)triplet1.R << '\t' << (int)triplet1.G << '\t' << (int)triplet1.B << '\t' << endl;
 
 	//Max 40
 	set.Layers[0].Denoise.Luminance = 0;

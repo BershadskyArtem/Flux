@@ -3,27 +3,25 @@
 
 // RGB Color
 sRGBColor RGBColor::TosRGB() {
-	Converter::Init();
 	sRGBColor result = sRGBColor();
-	result.R = Converter::RGB2sRGB(R);
-	result.G = Converter::RGB2sRGB(G);
-	result.B = Converter::RGB2sRGB(B);
+
+	result.R = Converter::RGB2sRGB(std::clamp(R, 0.f, 1.f));
+	result.G = Converter::RGB2sRGB(std::clamp(G, 0.f, 1.f));
+	result.B = Converter::RGB2sRGB(std::clamp(B, 0.f, 1.f));
 	return result;
 }
 OkLabColor RGBColor::ToOkLab() {
-	Converter::Init();
 	OkLabColor result = OkLabColor();
 	Converter::RGB2OKLab(R, G, B, result.L, result.A, result.B);
 	return result;
 }
 OkLChColor RGBColor::ToOkLCh() {
-	Converter::Init();
 	OkLChColor result = OkLChColor();
 	pixel_t tempL = 0.0f;
 	pixel_t tempA = 0.0f;
 	pixel_t tempB = 0.0f;
 	Converter::RGB2OKLab(R, G, B, tempL, tempA, tempB);
-	Converter::RGB2OKLab(tempL, tempA, tempB, result.L, result.C, result.H);
+	Converter::OkLab2OkLCh(tempL, tempA, tempB, result.L, result.C, result.H);
 	return result;
 }
 u8ColorTriplet RGBColor::ToColorTriplet() {
@@ -37,11 +35,10 @@ u8ColorTriplet RGBColor::ToColorTriplet() {
 //sRGB Color
 RGBColor sRGBColor::ToRGB()
 {
-	Converter::Init();
 	RGBColor result = RGBColor();
-	result.R = Converter::sRGB2RGB(R);
-	result.G = Converter::sRGB2RGB(G);
-	result.B = Converter::sRGB2RGB(B);
+	result.R = Converter::sRGB2RGB(std::clamp(R, 0.0f, 1.f));
+	result.G = Converter::sRGB2RGB(std::clamp(G, 0.0f, 1.f));
+	result.B = Converter::sRGB2RGB(std::clamp(B, 0.0f, 1.f));
 	return result;
 }
 OkLabColor sRGBColor::ToOkLab()
@@ -86,7 +83,7 @@ RGBColor OkLChColor::ToRGB() {
 	return ToOkLab().ToRGB();
 }
 OkLabColor OkLChColor::ToOkLab() {
-	Converter::Init();
+
 	OkLabColor result = OkLabColor();
 	Converter::OkLCh2OkLab(L, C, H, result.L, result.A, result.B);
 	return result;
