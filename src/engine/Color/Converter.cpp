@@ -16,6 +16,11 @@ void Converter::sRGB2RGB(pixel_t r, pixel_t g, pixel_t b, pixel_t& rOut, pixel_t
 	bOut = Converter::LUTsRGBToRGBFloat.Get01(b);
 }
 
+pixel_t Converter::sRGB2RGB(pixel_t in)
+{
+	return Converter::LUTRGBtosRGBFloat.Get01(in);
+}
+
 void Converter::sRGB2RGB(pixel_t* r, pixel_t* g, pixel_t* b, pixel_t* rOut, pixel_t* gOut, pixel_t* bOut, int width, int height)
 {
 

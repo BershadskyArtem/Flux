@@ -1,7 +1,4 @@
 #include "LutImageOperation.h"
-#include "LutImageOperation.h"
-#include "LutImageOperation.h"
-#include "LutImageOperation.h"
 #include "../../../Color/FluxColorMath.h"
 #include "../../../infrastructure/BenchmarkHelper.h"
 
@@ -18,15 +15,15 @@ pixel_t LutImageOperation::GetBrightnessUsingColorMask(pixel_t l, pixel_t c, pix
 /// <param name="b"></param>
 /// <param name="settings"></param>
 /// <returns></returns>
-pixel_t LutImageOperation::ElevateBrightness(pixel_t l, pixel_t a, pixel_t b, LUTProcessingSettings& settings)
+pixel_t LutImageOperation::ElevateBrightness(const OkLChColor& color, LUTProcessingSettings& settings)
 {
 	pixel_t elevateAmount = 0.f;
-	pixel_t chrominance = 0.f;
-	pixel_t hue = 0.f;
-	pixel_t luma = 0.f;
+	pixel_t chrominance = color.C;
+	pixel_t hue = color.H;
+	pixel_t luma = color.L;
 	pixel_t currentLuma = 0.f;
 
-	Converter::OkLab2OkLCh(l, a, b, luma, chrominance, hue);
+	//Converter::OkLab2OkLCh(l, a, b, luma, chrominance, hue);
 
 	//Exposure
 	currentLuma = luma * std::pow(2, settings.LightSettings.Exposure);
@@ -89,15 +86,15 @@ pixel_t LutImageOperation::ElevateBrightness(pixel_t l, pixel_t a, pixel_t b, LU
 	return currentLuma;
 }
 
-pixel_t LutImageOperation::ElevateHue(pixel_t l, pixel_t a, pixel_t b, LUTProcessingSettings& settings)
+pixel_t LutImageOperation::ElevateHue(const OkLChColor& color, LUTProcessingSettings& settings)
 {
 	pixel_t elevateAmount = 0.f;
-	pixel_t chrominance = 0.f;
-	pixel_t hue = 0.f;
-	pixel_t luma = 0.f;
+	pixel_t chrominance = color.C;
+	pixel_t hue = color.H;
+	pixel_t luma = color.L;
 	pixel_t currentHue = 0.f;
 
-	Converter::OkLab2OkLCh(l, a, b, luma, chrominance, hue);
+	//Converter::OkLab2OkLCh(l, a, b, luma, chrominance, hue);
 
 
 	pixel_t colorFactorr = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Red);
@@ -131,16 +128,43 @@ pixel_t LutImageOperation::ElevateHue(pixel_t l, pixel_t a, pixel_t b, LUTProces
 
 }
 
-pixel_t LutImageOperation::ElevateSaturation(pixel_t l, pixel_t a, pixel_t b, LUTProcessingSettings& settings)
+pixel_t LutImageOperation::ElevateSaturation(const OkLChColor& color, LUTProcessingSettings& settings)
 {
+	pixel_t luma = color.L;
+	pixel_t chrominance = color.C;
+	pixel_t hue = color.H;
 
-	pixel_t sF = 0;
-	pixel_t lF = 0;
-	pixel_t hF = 0;
+	//Converter::OkLab2OkLCh(l, a, b, luma, chrominance, hue);
 
+	pixel_t colorFactorr = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Red);
+	pixel_t colorFactoro = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Orange);
+	pixel_t colorFactory = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Yellow);
+	pixel_t colorFactorg = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Green);
+	pixel_t colorFactora = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Aqua);
+	pixel_t colorFactorb = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Blue);
+	pixel_t colorFactorm = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Magenta);
+	pixel_t colorFactorp = GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.Purple);
+	
+	pixel_t vibranceFactor = FluxMath::DualSmoothstep(chrominance, 0.08f, 0.045f, 0.008f - 0.045f);
+	
+	pixel_t chrominanceElevation = 1;
 
+	chrominanceElevation += colorFactorr * settings.HSLSettings.Red.Saturation / 100.f +
+		colorFactoro * settings.HSLSettings.Orange.Lightness / 100.f +
+		colorFactory * settings.HSLSettings.Yellow.Lightness / 100.f +
+		colorFactorg * settings.HSLSettings.Green.Lightness / 100.f +
+		colorFactora * settings.HSLSettings.Aqua.Lightness / 100.f +
+		colorFactorb * settings.HSLSettings.Blue.Lightness / 100.f +
+		colorFactorm * settings.HSLSettings.Magenta.Lightness / 100.f +
+		colorFactorp * settings.HSLSettings.Purple.Lightness / 100.f;
 
-	return pixel_t();
+	for (int i = 0; i < settings.HSLSettings.CustomColorsCount; i++)
+	{
+		chrominanceElevation += GetBrightnessUsingColorMask(luma, chrominance, hue, settings.HSLSettings.CustomColors[i])
+			* settings.HSLSettings.CustomColors[i].Saturation / 100.f;
+	}
+
+	return std::clamp(saturationElevation * chrominance, 0.0f, 0.37f);
 }
 
 
@@ -208,62 +232,34 @@ ProcessingCacheEntry* LutImageOperation::Run(ProcessingCacheEntry* previousCache
 		{
 			for (pixel_t b = 0; b < LUT_DIM; b++)
 			{
-				pixel_t rF = r / LUT_DIM;
-				pixel_t gF = g / LUT_DIM;
-				pixel_t bF = b / LUT_DIM;
+				//Input
+				RGBColor inColor = RGBColor(r / LUT_DIM, g / LUT_DIM, b / LUT_DIM);
+				//Convert
+				OkLChColor inlchColor = inColor.ToOkLCh();
 
+				//Evaluate
+				pixel_t lPixFinal = ElevateBrightness(inlchColor, settings);
+				pixel_t hPixFinal = ElevateHue(inlchColor, settings);
+				pixel_t cPixFinal = ElevateSaturation(inlchColor, settings);
 
-				pixel_t lPix = 0;
-				pixel_t aPix = 0;
-				pixel_t bPix = 0;
+				//Convert back
+				OkLChColor outLChColor = OkLChColor(lPixFinal, hPixFinal, cPixFinal);
+				sRGBColor outColor = outLChColor.TosRGB();
 
-				pixel_t lPixFinal = 0;
-				pixel_t hPixFinal = 0;
-				pixel_t sPixFinal = 0;
-
-				Converter::RGB2OKLab(rF, gF, bF, lPix, aPix, bPix);
-
-				lPixFinal = ElevateBrightness(lPix, aPix, bPix, settings);
-				hPixFinal = ElevateHue(lPix, aPix, bPix, settings);
-				sPixFinal = ElevateSaturation(lPix, aPix, bPix, settings);
-
-
-				Converter::OKLab2RGB(lPixFinal, hPixFinal, bPix, rF, gF, bF);
-
-				rF = std::max(std::min(rF, 1.f), 0.f);
-				gF = std::max(std::min(gF, 1.f), 0.f);
-				bF = std::max(std::min(bF, 1.f), 0.f);
-
-				rF = Converter::RGB2sRGB(rF);
-				gF = Converter::RGB2sRGB(gF);
-				bF = Converter::RGB2sRGB(bF);
-
-				lutL->SetValue(rF, r, g, b);
-				lutA->SetValue(gF, r, g, b);
-				lutB->SetValue(bF, r, g, b);
+				//Output
+				lutL->SetValue(outColor.R, r, g, b);
+				lutA->SetValue(outColor.G, r, g, b);
+				lutB->SetValue(outColor.B, r, g, b);
 			}
 		}
 	}
-
-	//std::string outputFilePath1 = "C:\\Users\\Artyom\\Downloads\\Lena-B-End.jpg";
-	//JpegImageEncoder encoder2 = JpegImageEncoder((pixel_t*)previousCache->BPixels, w, h, 1);
-	//encoder2.Init();
-	//encoder2.FastSave(outputFilePath1);
 
 	pixel_t* rPix = new pixel_t[w * h]{};
 	pixel_t* gPix = new pixel_t[w * h]{};
 	pixel_t* bPix = new pixel_t[w * h]{};
 
-	//auto oklab2rgbtime = BenchmarkHelper::StartWatch();
-
 	Converter::OKLab2RGB(previousCache->LPixels, previousCache->APixels, previousCache->BPixels, rPix, gPix, bPix, w, h);
 
-	//BenchmarkHelper::ShowDurationFinal(oklab2rgbtime, "OkLAB to RGB took...");
-
-	//std::string outputFilePath2 = "C:\\Users\\Artyom\\Downloads\\Lena-R.jpg";
-	//JpegImageEncoder encoder1 = JpegImageEncoder((pixel_t*)rPix, w, h, 1);	
-	//encoder1.Init();
-	//encoder1.FastSave(outputFilePath2);
 	//Apply 3D luts 
 	LUTf3d::ApplyLUTs(rPix, gPix, bPix, currentCache->RPixels, currentCache->GPixels, currentCache->BPixels, *lutL, *lutA, *lutB, w, h);
 

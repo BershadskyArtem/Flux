@@ -10,6 +10,7 @@ class Converter
 public:
 	//sRGB
 	static void sRGB2RGB(pixel_t r, pixel_t g , pixel_t b, pixel_t& rOut, pixel_t& gOut, pixel_t& bOut);
+	static pixel_t sRGB2RGB(pixel_t in);
 	static void sRGB2RGB(pixel_t* r, pixel_t* g , pixel_t* b, pixel_t* rOut, pixel_t* gOut, pixel_t* bOut, int width, int height);
 	static void sRGB2RGB(pixel_t* rgbIn, pixel_t* rgbOut, int width, int height);
 	static void sRGB2RGB(byte_t r, byte_t g , byte_t b, byte_t& rOut, byte_t& gOut, byte_t& bOut);
