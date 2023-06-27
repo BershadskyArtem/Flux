@@ -170,7 +170,7 @@ struct ProcessSettings {
 };
 
 struct BaseProcessingSetting {
-    int Version;
+    int Version = 0;
 };
 
 struct CropProcessingSettings {
@@ -190,26 +190,26 @@ struct ResizeProcessingSettings {
 };
 
 struct DenoiseProcessingSettings {
-    int Luminance;
-    int Chrominance;
-    int Details;
-    int ImpulseNoise;
-    int Mode;
+    int Luminance = 0;
+    int Chrominance = 0;
+    int Details = 0;
+    int ImpulseNoise = 0;
+    int Mode = 0;
 };
 
 struct DehazeProcessingSettings {
-    int Amount;
-    int ColorR;
-    int ColorG;
-    int ColorB;
+    int Amount = 0;
+    int ColorR = 0;
+    int ColorG = 0;
+    int ColorB = 0;
     int Mode;
 };
 
 struct ClarityProcessingSettings {
-    int Radius;
-    int Amount;
-    int Threshold;
-    int Mode;
+    int Radius = 0;
+    int Amount = 0;
+    int Threshold = 0;
+    int Mode = 0;
 };
 
 struct TextureProcessingSettings {
@@ -220,40 +220,40 @@ struct TextureProcessingSettings {
 
 
 struct WBProcessingSettings {
-    int Temperature;
-    int Tint;
+    int Temperature = 5200;
+    int Tint = 0;
     BaseProcessingSetting Mode;
 };
 
 struct LightProcessingSettings {
-    float Exposure;
-    int Contrast;
-    int Brightness;
+    float Exposure = 0;
+    int Contrast = 0;
+    int Brightness = 0;
     BaseProcessingSetting Mode;
 };
 
 struct HDRProcessingSettings {
-    int Whites;
-    int Highlights;
-    int Shadows;
-    int Blacks;
+    int Whites = 0;
+    int Highlights = 0;
+    int Shadows = 0;
+    int Blacks = 0;
     BaseProcessingSetting Mode;
 };
 
 
 struct ColorSelectionBorder {
-    float HueLeft;
-    float HueRight;
+    float HueLeft = 0;
+    float HueRight = 0;
 
-    float LightnessLeft;
-    float LightnessRight;
+    float LightnessLeft = 0;
+    float LightnessRight = 0;
 
-    float SaturationLeft;
-    float SaturationRight;
+    float SaturationLeft = 0;
+    float SaturationRight = 0;
 
-    bool IsSmallerBorder;
+    bool IsSmallerBorder = false;
 
-    float Smoothness;
+    float Smoothness = 0;
 
     BaseProcessingSetting Mode;
 };
@@ -261,10 +261,10 @@ struct ColorSelectionBorder {
 struct HSLColorProcessingSettings {
     ColorSelectionBorder SelectedColor;
 
-    float HueShift;
-    int Lightness;
-    int Saturation;
-    int Uniformity;
+    float HueShift = 0;
+    int Lightness = 0;
+    int Saturation = 0;
+    int Uniformity = 0;
     
 
     BaseProcessingSetting Mode;
@@ -281,7 +281,7 @@ struct HSLProcessingSettings {
     HSLColorProcessingSettings Magenta;
     HSLColorProcessingSettings Skin;
 
-    int CustomColorsCount;
+    int CustomColorsCount = 0;
     HSLColorProcessingSettings* CustomColors;
 
     BaseProcessingSetting Mode;
@@ -297,8 +297,8 @@ struct ToneMappingProcessingSettings {
 };
 
 struct BasicColorProcessingSettings {
-    int Vibrance;
-    int Saturation;
+    int Vibrance = 0;
+    int Saturation = 0;
     BaseProcessingSetting Mode;
 };
 

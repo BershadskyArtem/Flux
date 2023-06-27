@@ -23,7 +23,7 @@ bool JpegImageEncoder::Init()
 
 bool JpegImageEncoder::FastSave(std::string filePath)
 {
-	int jpegQuality = 95;
+	int jpegQuality = 100;
 	
 	int pixel_type = 0;
 	int sampling = 0;

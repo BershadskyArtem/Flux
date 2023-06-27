@@ -18,10 +18,10 @@ int main()
 	ColorLUTConverter::Init();
 	FluxImageProcessor::Init();
 	//std::string inputFilePath = "C:\\Users\\Artyom\\Downloads\\rectimage1023-1024.jpg";
-	std::string inputFilePath = "C:\\Users\\Artyom\\Desktop\\IMG_9409-NoDenoising.jpg";
+	std::string inputFilePath = "C:\\Users\\Artyom\\Desktop\\HueNotCorrected.jpeg";
 
 	//std::string outputFilePath = "C:\\Users\\Artyom\\Downloads\\rectimage1023-1024-Pipeline.jpg";
-	std::string outputFilePath = "C:\\Users\\Artyom\\Desktop\\IMG_9409-MyDenoising.jpg";
+	std::string outputFilePath = "C:\\Users\\Artyom\\Desktop\\HueCorrected.jpeg";
 	ImageInput input = ImageInput(inputFilePath);
 
 	input.Init();
@@ -37,8 +37,13 @@ int main()
 	//Matrix<pixel_t> mat = Matrix<pixel_t>(image->Width, image->Height, (pixel_t*)processed->Pixels);
 	std::cout << std::endl;
 	ProcessSettings set = ProcessSettings();
+
+	HSLProcessingSettings hps = FluxImageProcessor::GenerateDefaultColorWheel();
+
+
 	set.Layers = new ProcessSettingsLayer[1]{};
 	set.Layers[0] = ProcessSettingsLayer();
+	set.Layers[0].LUT.HSLSettings = hps;
 	set.Layers[0].Crop.LeftUpX = 0;
 	set.Layers[0].Crop.LeftUpY = 0;
 	set.Layers[0].Crop.RightDownX = image->Width;
@@ -48,15 +53,30 @@ int main()
 	set.Layers[0].Resize.ResizeToX = 500;
 	set.Layers[0].Resize.ResizeToY = 500;
 	set.Layers[0].Resize.Mode = 1;
-	set.Layers[0].Resize.Scale = 0.55f;
+	set.Layers[0].Resize.Scale = 1.f;
 
 	set.Layers[0].LUT.LightSettings.Exposure = 0.f;
 	set.Layers[0].LUT.LightSettings.Contrast = 0;
 	set.Layers[0].LUT.LightSettings.Brightness = 0;
-	set.Layers[0].LUT.BasicColorSettings.Vibrance = 100;
+	set.Layers[0].LUT.BasicColorSettings.Vibrance = 200;
 	
 	set.Layers[0].LUT.HDRSettings.Shadows = 50;
 	set.Layers[0].LUT.HDRSettings.Highlights = -75;
+	set.Layers[0].LUT.HSLSettings.Blue.HueShift = 0;
+	set.Layers[0].LUT.HSLSettings.Aqua.HueShift = 0;
+	set.Layers[0].LUT.HSLSettings.Green.HueShift = 0;
+	set.Layers[0].LUT.HSLSettings.Yellow.HueShift = 0;
+	set.Layers[0].LUT.HSLSettings.Orange.HueShift = 0;
+	set.Layers[0].LUT.HSLSettings.Red.HueShift = 0;
+	set.Layers[0].LUT.HSLSettings.Magenta.HueShift = 0;
+	set.Layers[0].LUT.HSLSettings.Purple.HueShift = 10;
+	//set.Layers[0].LUT.HSLSettings.Aqua.HueShift = 0.8;
+	//set.Layers[0].LUT.HSLSettings.Red.HueShift = 0.8;
+	//set.Layers[0].LUT.HSLSettings.Orange.HueShift = 0.8;
+	//set.Layers[0].LUT.HSLSettings.Yellow.HueShift = 0.8;
+	//set.Layers[0].LUT.HSLSettings.Purple.HueShift = 0.8;
+	
+	//set.Layers[0].LUT.HSLSettings;
 	
 	RGBColor c = RGBColor(9/255.f, 26 / 255.f, 46 / 255.f);
 	auto c2 = c.ToOkLCh();
@@ -76,9 +96,9 @@ int main()
 
 	//Max 40
 	set.Layers[0].Denoise.Luminance = 0;
-	set.Layers[0].Denoise.Chrominance = 75;
+	set.Layers[0].Denoise.Chrominance = 50;
 	set.Layers[0].Texture.Amount = 100;
-	set.Layers[0].Clarity.Amount = 200;
+	set.Layers[0].Clarity.Amount = 100;
 	set.ChangedLayer = 0;
 	set.ChangedStage = ProcessingStage::Input;
 

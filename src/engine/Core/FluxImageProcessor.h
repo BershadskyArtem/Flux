@@ -17,7 +17,7 @@ private:
 
 public:
 	static void Init();
-
+	static HSLProcessingSettings GenerateDefaultColorWheel();
 	static FluxImage* DebugProcessToLuma(FluxImage* image);
 	static FluxImage* Process(FluxImage* image, ProcessSettings* settings);
 	static ProcessingCache* PreProcess(FluxImage* image, ProcessSettings* settings);

@@ -1,4 +1,5 @@
 #include "FluxImageProcessor.h"
+#include "FluxImageProcessor.h"
 #include "ImageOperations/Implementations/CropImageOperation.h"
 #include "ImageOperations/Implementations/DenoiseImageOperation.h"
 #include "../infrastructure/BenchmarkHelper.h"
@@ -25,6 +26,70 @@ void FluxImageProcessor::Init()
 	s_Operations.push_back(new DetailsImageOperation());
 	s_Operations.push_back(new WaveletComposeImageOperation());
 	s_Operations.push_back(new LutImageOperation());
+}
+
+HSLProcessingSettings FluxImageProcessor::GenerateDefaultColorWheel()
+{
+	HSLProcessingSettings result = HSLProcessingSettings();
+	result.Red = HSLColorProcessingSettings();
+	result.Orange = HSLColorProcessingSettings();
+	result.Yellow = HSLColorProcessingSettings();
+	result.Green = HSLColorProcessingSettings();
+	result.Aqua = HSLColorProcessingSettings();
+	result.Blue = HSLColorProcessingSettings();
+	result.Magenta = HSLColorProcessingSettings();
+
+	result.Red.SelectedColor = ColorSelectionBorder();
+	result.Orange.SelectedColor = ColorSelectionBorder();
+	result.Yellow.SelectedColor = ColorSelectionBorder();
+	result.Green.SelectedColor = ColorSelectionBorder();
+	result.Aqua.SelectedColor = ColorSelectionBorder();
+	result.Blue.SelectedColor = ColorSelectionBorder();
+	result.Magenta.SelectedColor = ColorSelectionBorder();
+
+	//Y
+	result.Red.SelectedColor.HueLeft = 10;
+	result.Red.SelectedColor.HueRight = 30;
+	result.Red.SelectedColor.Smoothness = 10;
+
+
+	//Y
+	result.Orange.SelectedColor.HueLeft = 40;
+	result.Orange.SelectedColor.HueRight = 90;
+	result.Orange.SelectedColor.Smoothness = 10;
+
+	//Y
+	result.Yellow.SelectedColor.HueLeft = 95;
+	result.Yellow.SelectedColor.HueRight = 115;
+	result.Yellow.SelectedColor.Smoothness = 10;
+
+	//Y
+	result.Green.SelectedColor.HueLeft = 140;
+	result.Green.SelectedColor.HueRight = 160;
+	result.Green.SelectedColor.Smoothness = 5;
+
+	//Y
+	result.Aqua.SelectedColor.HueLeft = 170;
+	result.Aqua.SelectedColor.HueRight = 235;
+	result.Aqua.SelectedColor.Smoothness = 10;
+
+	//Y
+	result.Blue.SelectedColor.HueLeft = 260;
+	result.Blue.SelectedColor.HueRight = 280;
+	result.Blue.SelectedColor.Smoothness = 10;
+
+
+	result.Purple.SelectedColor.HueLeft = 275;
+	result.Purple.SelectedColor.HueRight = 320;
+	result.Purple.SelectedColor.Smoothness = 10;
+
+	//Y
+	result.Magenta.SelectedColor.HueLeft = 340;
+	result.Magenta.SelectedColor.HueRight = 10;
+	result.Magenta.SelectedColor.Smoothness = 10;
+
+
+	return result;
 }
 
 FluxImage* FluxImageProcessor::DebugProcessToLuma(FluxImage* image)

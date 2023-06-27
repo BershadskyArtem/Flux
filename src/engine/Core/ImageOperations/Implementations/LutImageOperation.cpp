@@ -110,13 +110,13 @@ pixel_t LutImageOperation::ElevateHue(const OkLChColor& color, LUTProcessingSett
 	pixel_t totalElevation = 0;
 
 	totalElevation += colorFactorr * settings.HSLSettings.Red.HueShift / (2 * PI) +
-		colorFactoro * settings.HSLSettings.Orange.Lightness / (2 * PI) +
-		colorFactory * settings.HSLSettings.Yellow.Lightness / (2 * PI) +
-		colorFactorg * settings.HSLSettings.Green.Lightness / (2 * PI) +
-		colorFactora * settings.HSLSettings.Aqua.Lightness / (2 * PI) +
-		colorFactorb * settings.HSLSettings.Blue.Lightness / (2 * PI) +
-		colorFactorm * settings.HSLSettings.Magenta.Lightness / (2 * PI) +
-		colorFactorp * settings.HSLSettings.Purple.Lightness / (2 * PI);
+		colorFactoro * settings.HSLSettings.Orange.HueShift / (2 * PI) +
+		colorFactory * settings.HSLSettings.Yellow.HueShift / (2 * PI) +
+		colorFactorg * settings.HSLSettings.Green.HueShift / (2 * PI) +
+		colorFactora * settings.HSLSettings.Aqua.HueShift / (2 * PI) +
+		colorFactorb * settings.HSLSettings.Blue.HueShift / (2 * PI) +
+		colorFactorm * settings.HSLSettings.Magenta.HueShift / (2 * PI) +
+		colorFactorp * settings.HSLSettings.Purple.HueShift / (2 * PI);
 
 	for (int i = 0; i < settings.HSLSettings.CustomColorsCount; i++)
 	{
@@ -242,8 +242,8 @@ ProcessingCacheEntry* LutImageOperation::Run(ProcessingCacheEntry* previousCache
 
 				//Evaluate
 				pixel_t lPixFinal = ElevateBrightness(inlchColor, settings);
-				//pixel_t hPixFinal = ElevateHue(inlchColor, settings);
-				pixel_t hPixFinal = inlchColor.H;
+				pixel_t hPixFinal = ElevateHue(inlchColor, settings);
+				//pixel_t hPixFinal = inlchColor.H;
 				pixel_t cPixFinal = ElevateSaturation(inlchColor, settings);
 
 				//Convert back
